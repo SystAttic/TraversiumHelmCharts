@@ -1,0 +1,4 @@
+apiVersion: v1
+name: traversium-ingress
+version: 1.0.0
+description: Ingress for Traversium services

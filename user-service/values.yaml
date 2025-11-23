@@ -1,0 +1,15 @@
+image:
+  repository: ghcr.io/systattic/traversium-user-service
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: Always
+
+service:
+  port: 8090
+  type: ClusterIP
+
+replicaCount: 1
+
+secrets:
+  imagePullSecret: ghcr-secret
+  databaseSecret: neon-db-secret
+  firebaseSecret: firebase-secret

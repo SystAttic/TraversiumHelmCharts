@@ -1,0 +1,13 @@
+ingress:
+  host: ""  # Leave empty to use IP, or set domain
+
+services:
+  user:
+    name: user-service
+    path: /users
+    port: 80
+  # Add more services later
+  # product:
+  #   name: product-service
+  #   path: /products
+  #   port: 80
