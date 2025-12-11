@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service
+  name: notification-service
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: user-service
+      app: notification-service
   template:
     metadata:
       labels:
-        app: user-service
+        app: notification-service
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.imagePullSecret }}
       containers:
-        - name: user-service
+        - name: notification-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
           volumeMounts:
             - name: firebase-config
-              mountPath: /opt/user-service/conf
+              mountPath: /opt/notification-service/conf
               readOnly: true
           env:
             - name: SPRING_DATASOURCE_URL
@@ -49,7 +49,7 @@ spec:
             - name: SPRING_FLYWAY_LOCATIONS
               value: "classpath:db/migration/tenant"
             - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/users"
+              value: "/notifications"
             - name: MANAGEMENT_HEALTH_DB_ENABLED
               value: "false"
             - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
@@ -64,6 +64,12 @@ spec:
               value: "300000"
             - name: SPRING_DATASOURCE_HIKARI_KEEPALIVE_TIME
               value: "0"
+            - name: NOTIFICATION_BATCH_ENABLED
+              value: "true"
+            - name: NOTIFICATION_BATCH_WINDOW_MS
+              value: "10000"
+            - name: NOTIFICATION_BATCH_MIN_BATCH_THRESHOLD
+              value: "3"
             - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
               value: "readinessState,diskSpace"
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS

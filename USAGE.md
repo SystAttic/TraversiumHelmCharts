@@ -161,6 +161,42 @@ helm install nginx-ingress ingress-nginx/ingress-nginx \
 helm install traversium-ingress ./ingress
 ```
 
+### Deploy Kafka
+
+Required for message queue communication between services.
+
+```bash
+# Add Bitnami repo if not already added
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+
+# Install Kafka (it installs it in new namespace 'kafka-test')
+helm install kafka \
+    oci://registry-1.docker.io/bitnamicharts/kafka \
+    --version 32.0.1 \
+    --namespace kafka-test \
+    --create-namespace \
+    --set image.registry=docker.io \
+    --set image.repository=bitnamilegacy/kafka \
+    --set image.tag=4.0.0-debian-12-r0 \
+    --set global.security.allowInsecureImages=true \
+    --set listeners.client.protocol=PLAINTEXT \
+    --set listeners.controller.protocol=PLAINTEXT \
+    --set auth.clientProtocol=plaintext \
+    --set auth.interBrokerProtocol=plaintext
+
+# Verify Kafka is running
+kubectl get pods -l app.kubernetes.io/name=kafka
+
+# Check Kafka service
+kubectl get svc kafka
+```
+
+
+**Note:** The Kafka service will be accessible at `kafka:9092` from within the cluster.
+
+---
+
 ## Accessing Services
 
 ### Get Service URLs

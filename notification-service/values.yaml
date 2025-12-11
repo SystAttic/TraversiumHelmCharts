@@ -1,17 +1,17 @@
 image:
-  repository: ghcr.io/systattic/traversium-user-service
-  tag: "1.2.0-SNAPSHOT"
+  repository: ghcr.io/systattic/traversium-notification-service
+  tag: "1.3.0-SNAPSHOT"
   pullPolicy: Always
 
 service:
-  port: 8090
+  port: 8091
   type: ClusterIP
 
 replicaCount: 1
 
 secrets:
   imagePullSecret: ghcr-secret
-  databaseSecret: neon-db-secret
+  databaseSecret: neon-notification-db-secret
   firebaseSecret: firebase-secret
 
 kafka:

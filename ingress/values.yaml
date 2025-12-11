@@ -6,6 +6,10 @@ services:
     name: user-service
     path: /users
     port: 80
+  notification:
+    name: notification-service
+    path: /notifications
+    port: 80
   # Add more services later
   # product:
   #   name: product-service
