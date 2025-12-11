@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: traversium-ingress
 spec:
-  ingressClassName: ngnix
+  ingressClassName: nginx
   rules:
     - http:
         paths:

@@ -50,6 +50,23 @@ spec:
               value: "classpath:db/migration/tenant"
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: "/users"
+            - name: MANAGEMENT_HEALTH_DB_ENABLED
+              value: "false"
+            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+              value: "0"
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              value: "5"
+            - name: SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT
+              value: "15000"
+            - name: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
+              value: "30000"
+            - name: SPRING_DATASOURCE_HIKARI_MAX_LIFETIME
+              value: "300000"
+            - name: SPRING_DATASOURCE_HIKARI_KEEPALIVE_TIME
+              value: "0"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
+              value: "readinessState,diskSpace"
+
       volumes:
         - name: firebase-config
           secret:
