@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-storage-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: file-storage-service
+  template:
+    metadata:
+      labels:
+        app: file-storage-service
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.secrets.imagePullSecret }}
+      containers:
+        - name: file-storage-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: firebase-config
+              mountPath: /opt/file-storage-service/conf
+              readOnly: true
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.service.port }}"
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/files"
+            - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ACCOUNT_NAME
+              value: "{{ .Values.azure.storage.accountName }}"
+            - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_CONTAINER_NAME
+              value: "{{ .Values.azure.storage.containerName }}"
+            - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ENDPOINT
+              value: "{{ .Values.azure.storage.endpoint }}"
+            - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.azureStorageSecret }}
+                  key: account-key
+            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
+              value: "readinessState,diskSpace"
+      volumes:
+        - name: firebase-config
+          secret:
+            secretName: {{ .Values.secrets.firebaseSecret }}

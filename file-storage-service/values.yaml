@@ -1,0 +1,21 @@
+image:
+  repository: ghcr.io/systattic/traversium-file-storage-service
+  tag: "1.0.0-SNAPSHOT"
+  pullPolicy: Always
+
+service:
+  port: 8095
+  type: ClusterIP
+
+replicaCount: 1
+
+secrets:
+  imagePullSecret: ghcr-secret
+  azureStorageSecret: azure-storage-secret
+  firebaseSecret: firebase-secret
+
+azure:
+  storage:
+    accountName: "traversium"
+    containerName: "media"
+    endpoint: "https://traversium.blob.core.windows.net/"

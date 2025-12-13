@@ -22,6 +22,10 @@ services:
     name: social-service
     path: /social
     port: 80
+  files:
+    name: file-storage-service
+    path: /files
+    port: 80
   # Add more services later
   # product:
   #   name: product-service
