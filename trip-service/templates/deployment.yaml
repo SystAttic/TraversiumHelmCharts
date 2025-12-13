@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service
+  name: trip-service
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: user-service
+      app: trip-service
   template:
     metadata:
       labels:
-        app: user-service
+        app: trip-service
     spec:
       imagePullSecrets:
         - name: {{ .Values.secrets.imagePullSecret }}
       containers:
-        - name: user-service
+        - name: trip-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
           volumeMounts:
             - name: firebase-config
-              mountPath: /opt/user-service/conf
+              mountPath: /opt/trip-service/conf
               readOnly: true
           env:
             - name: SPRING_DATASOURCE_URL
@@ -55,7 +55,7 @@ spec:
             - name: SPRING_JPA_OPEN_IN_VIEW
               value: "false"
             - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/users"
+              value: "/trips"
             - name: MANAGEMENT_HEALTH_DB_ENABLED
               value: "false"
             - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
@@ -76,10 +76,10 @@ spec:
               value: "readinessState,diskSpace"
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: "{{ .Values.kafka.bootstrapServers }}"
-            - name: SPRING_KAFKA_NOTIFICATION_TOPIC
-              value: "{{ .Values.kafka.notificationTopic }}"
             - name: SPRING_KAFKA_AUDIT_TOPIC
               value: "{{ .Values.kafka.auditTopic }}"
+            - name: SPRING_KAFKA_NOTIFICATION_TOPIC
+              value: "{{ .Values.kafka.notificationTopic }}"
       volumes:
         - name: firebase-config
           secret:

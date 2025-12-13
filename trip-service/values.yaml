@@ -1,0 +1,20 @@
+image:
+  repository: ghcr.io/systattic/traversium-trip-service
+  tag: "1.2.0-SNAPSHOT"
+  pullPolicy: Always
+
+service:
+  port: 8093
+  type: ClusterIP
+
+replicaCount: 1
+
+secrets:
+  imagePullSecret: ghcr-secret
+  databaseSecret: neon-trip-db-secret
+  firebaseSecret: firebase-secret
+
+kafka:
+  bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
+  auditTopic: "audit-topic"
+  notificationTopic: "notification-topic"

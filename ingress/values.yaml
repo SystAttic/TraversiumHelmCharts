@@ -14,6 +14,10 @@ services:
     name: audit-service
     path: /audit
     port: 80
+  trip:
+    name: trip-service
+    path: /trips
+    port: 80
   # Add more services later
   # product:
   #   name: product-service
