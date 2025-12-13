@@ -27,6 +27,10 @@ spec:
               value: "{{ .Values.kafka.notificationTopic }}"
             - name: SPRING_KAFKA_AUDIT_TOPIC
               value: "{{ .Values.kafka.auditTopic }}"
+            - name: GRPC_SERVER_HOST
+              value: "{{ .Values.grpc.server.host }}"
+            - name: GRPC_SERVER_PORT
+              value: "{{ .Values.grpc.server.port }}"
           {{ include "common.probes" (dict "contextPath" "/users" "Values" .Values) | nindent 10 }}
       volumes:
         {{ include "common.firebaseVolume" . | nindent 8 }}

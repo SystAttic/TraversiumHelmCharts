@@ -5,6 +5,7 @@ image:
 
 service:
   port: 8093
+  grpcPort: 9090
   type: ClusterIP
 
 replicaCount: 1
@@ -20,13 +21,18 @@ kafka:
   notificationTopic: "notification-topic"
 
 probes:
+  startup:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30  # 30 * 10 = 300 seconds max startup time
   liveness:
-    initialDelaySeconds: 60
+    initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
   readiness:
-    initialDelaySeconds: 30
+    initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3

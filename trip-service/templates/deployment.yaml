@@ -19,6 +19,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+            - containerPort: {{ .Values.service.grpcPort }}
           volumeMounts:
             {{ include "common.firebaseVolumeMount" (dict "serviceName" "trip-service" "Values" .Values) | nindent 12 }}
           env:

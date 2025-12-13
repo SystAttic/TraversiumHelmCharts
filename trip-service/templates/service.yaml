@@ -5,7 +5,11 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: {{ .Values.service.port }}
+    - name: grpc
+      port: {{ .Values.service.grpcPort }}
+      targetPort: {{ .Values.service.grpcPort }}
   selector:
     app: trip-service
