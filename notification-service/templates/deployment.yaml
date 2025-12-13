@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: notification-service
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "/notifications" "Values" .Values) | nindent 8 }}
     spec:
       {{ include "common.imagePullSecrets" . | nindent 6 }}
       containers:

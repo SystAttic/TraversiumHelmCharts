@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: trip-service
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "/trips" "Values" .Values) | nindent 8 }}
     spec:
       {{ include "common.imagePullSecrets" . | nindent 6 }}
       containers:

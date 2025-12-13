@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: audit-service
+      annotations:
+        {{- include "common.prometheusAnnotations" (dict "contextPath" "/audit" "Values" .Values) | nindent 8 }}
     spec:
       {{- include "common.imagePullSecrets" . | nindent 6 }}
       containers:

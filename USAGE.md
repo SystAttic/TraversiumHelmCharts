@@ -171,6 +171,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
 # Install Kafka (it installs it in new namespace 'kafka-test')
+# NUJNO 1 REPLICA COUNT K JE CLUSTRU ZMANKAL MEMORY (3je porabjo 1.5GB)
 helm install kafka \
     oci://registry-1.docker.io/bitnamicharts/kafka \
     --version 32.0.1 \
@@ -183,7 +184,8 @@ helm install kafka \
     --set listeners.client.protocol=PLAINTEXT \
     --set listeners.controller.protocol=PLAINTEXT \
     --set auth.clientProtocol=plaintext \
-    --set auth.interBrokerProtocol=plaintext
+    --set auth.interBrokerProtocol=plaintext \
+    --set replica.count=1 
 
 # Verify Kafka is running
 kubectl get pods -l app.kubernetes.io/name=kafka
@@ -196,6 +198,88 @@ To set kafka bootstrap server address for other services, use: kafka.kafka-test.
 
 
 **Note:** The Kafka service will be accessible at `kafka:9092` from within the cluster.
+
+### Deploy Prometheus
+
+Prometheus is used for monitoring and metrics collection from all services.
+
+```bash
+# Add Prometheus Helm repository
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Create monitoring namespace
+kubectl create namespace monitoring
+
+# Install Prometheus in monitoring namespace
+helm install prometheus prometheus-community/prometheus --namespace monitoring
+
+# Verify Prometheus is running
+kubectl get pods -n monitoring
+```
+
+### Access Prometheus UI
+
+```bash
+# Port-forward to access Prometheus UI locally
+kubectl port-forward -n monitoring svc/prometheus-server 9090:80
+```
+
+Then open http://localhost:9090 in your browser.
+
+**To verify services are being scraped:**
+- Go to Status → Targets in the Prometheus UI
+- Look for the `kubernetes-pods` job
+- All your services should be listed and showing as "UP"
+
+### Deploy Grafana
+
+Grafana is used for visualizing metrics from Prometheus.
+
+```bash
+# Install Grafana in monitoring namespace
+helm install grafana grafana/grafana --namespace monitoring
+
+# Verify Grafana is running
+kubectl get pods -n monitoring | grep grafana
+```
+
+### Access Grafana
+
+**Get admin password:**
+```bash
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+**Port-forward to access locally:**
+```bash
+kubectl port-forward -n monitoring svc/grafana 3000:80
+```
+
+Then open http://localhost:3000 in your browser.
+- Username: `admin`
+- Password: (from command above)
+
+### Configure Prometheus Data Source in Grafana
+
+1. Login to Grafana
+2. Go to **Connections** → **Data Sources** → **Add data source**
+3. Select **Prometheus**
+4. Configure:
+   - **Name**: Prometheus
+   - **URL**: `http://prometheus-server`
+   - **Access**: Server (default)
+5. Click **Save & Test** - should see "Data source is working"
+
+### Import Dashboards
+
+Import pre-built dashboards for monitoring:
+
+1. Go to **Dashboards** → **Import**
+2. Enter dashboard ID:
+   - **Kubernetes Cluster**: `315` (for Kubernetes monitoring)
+3. Select **Prometheus** as data source
+4. Click **Import**
 
 ---
 

@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/systattic/traversium-audit-service
   tag: "1.2.0-SNAPSHOT"
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 service:
   port: 8092
@@ -23,7 +23,7 @@ probes:
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
-    failureThreshold: 30  # 30 * 10 = 300 seconds max startup time
+    failureThreshold: 30
   liveness:
     initialDelaySeconds: 5
     periodSeconds: 10

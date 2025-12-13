@@ -70,8 +70,6 @@ imagePullSecrets:
   value: "none"
 - name: SPRING_JPA_OPEN_IN_VIEW
   value: "false"
-- name: MANAGEMENT_HEALTH_DB_ENABLED
-  value: "false"
 {{ end -}}
 
 {{- define "common.kafkaBootstrap" -}}
@@ -84,8 +82,41 @@ imagePullSecrets:
   value: "{{ .Values.service.port }}"
 - name: SERVER_SERVLET_CONTEXT_PATH
   value: "{{ .contextPath }}"
+{{ end -}}
+
+{{- define "common.managementEnv" -}}
+- name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+  value: "health,info,prometheus"
+- name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+  value: "always"
+- name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
+  value: "true"
+- name: MANAGEMENT_HEALTH_LIVENESSSTATE_ENABLED
+  value: "true"
+- name: MANAGEMENT_HEALTH_READINESSSTATE_ENABLED
+  value: "true"
+{{ end -}}
+
+{{- define "common.managementHealthWithDb" -}}
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
+  value: "readinessState,db,diskSpace"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_SHOW_DETAILS
+  value: "always"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_LIVENESS_INCLUDE
+  value: "livenessState,ping"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_LIVENESS_SHOW_DETAILS
+  value: "always"
+{{ end -}}
+
+{{- define "common.managementHealthNoDb" -}}
 - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
   value: "readinessState,diskSpace"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_SHOW_DETAILS
+  value: "always"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_LIVENESS_INCLUDE
+  value: "livenessState,ping"
+- name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_LIVENESS_SHOW_DETAILS
+  value: "always"
 {{ end -}}
 
 {{- define "common.standardEnv" -}}
@@ -94,4 +125,12 @@ imagePullSecrets:
 {{ include "common.flywayJpaEnv" . -}}
 {{ include "common.hikariEnv" . -}}
 {{ include "common.kafkaBootstrap" . -}}
+{{ include "common.managementEnv" . -}}
+{{ include "common.managementHealthWithDb" . -}}
+{{- end -}}
+
+{{- define "common.prometheusAnnotations" -}}
+prometheus.io/scrape: "true"
+prometheus.io/path: "{{ .contextPath }}/actuator/prometheus"
+prometheus.io/port: "{{ .Values.service.port }}"
 {{- end -}}

@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "/users" "Values" .Values) | nindent 8 }}
     spec:
       {{ include "common.imagePullSecrets" . | nindent 6 }}
       containers:

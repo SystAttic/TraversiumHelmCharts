@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: file-storage-service
+      annotations:
+        {{- include "common.prometheusAnnotations" (dict "contextPath" "/files" "Values" .Values) | nindent 8 }}
     spec:
       {{- include "common.imagePullSecrets" . | nindent 6 }}
       containers:
@@ -23,6 +25,8 @@ spec:
             {{ include "common.firebaseVolumeMount" (dict "serviceName" "file-storage-service" "Values" .Values) | nindent 12 }}
           env:
             {{- include "common.serverEnv" (dict "contextPath" "/files" "Values" .Values) | nindent 12 }}
+            {{- include "common.managementEnv" . | nindent 12 }}
+            {{- include "common.managementHealthNoDb" . | nindent 12 }}
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ACCOUNT_NAME
               value: "{{ .Values.azure.storage.accountName }}"
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_CONTAINER_NAME
