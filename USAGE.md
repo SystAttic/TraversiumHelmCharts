@@ -466,3 +466,20 @@ kubectl exec -it user-service-XXXXX -- /bin/sh
 # Port forward to local machine
 kubectl port-forward svc/user-service 8080:80
 ```
+### To test Liveness and Readiness Probes
+
+```bash
+ kubectl port-forward deployment/file-storage-service 8095:8095
+
+curl http://localhost:8095/files/actuator/health/liveness
+curl http://localhost:8095/files/actuator/health/readiness
+```
+
+And to see that kubernetes is usng them (for example user-service):
+
+```bash
+kubectl describe deployment user-service
+
+or with events:
+kubectl get events --sort-by='.lastTimestamp' | grep user-service | grep -E 'Liveness|Readiness|Unhealthy|probe' | tail -20
+```

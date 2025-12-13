@@ -17,3 +17,15 @@ secrets:
 kafka:
   bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
   auditTopic: "audit-topic"
+
+probes:
+  liveness:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3

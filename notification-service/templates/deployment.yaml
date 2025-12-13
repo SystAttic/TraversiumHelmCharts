@@ -12,8 +12,7 @@ spec:
       labels:
         app: notification-service
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.secrets.imagePullSecret }}
+      {{ include "common.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: notification-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -21,60 +20,17 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
           volumeMounts:
-            - name: firebase-config
-              mountPath: /opt/notification-service/conf
-              readOnly: true
+            {{ include "common.firebaseVolumeMount" (dict "serviceName" "notification-service" "Values" .Values) | nindent 12 }}
           env:
-            - name: SPRING_DATASOURCE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.databaseSecret }}
-                  key: url
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.databaseSecret }}
-                  key: username
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.databaseSecret }}
-                  key: password
-            - name: SERVER_PORT
-              value: "{{ .Values.service.port }}"
-            - name: SPRING_FLYWAY_ENABLED
-              value: "true"
-            - name: SPRING_FLYWAY_LOCATIONS
-              value: "classpath:db/migration/tenant"
-            - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/notifications"
-            - name: MANAGEMENT_HEALTH_DB_ENABLED
-              value: "false"
-            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
-              value: "0"
-            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
-              value: "5"
-            - name: SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT
-              value: "15000"
-            - name: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
-              value: "30000"
-            - name: SPRING_DATASOURCE_HIKARI_MAX_LIFETIME
-              value: "300000"
-            - name: SPRING_DATASOURCE_HIKARI_KEEPALIVE_TIME
-              value: "0"
+            {{ include "common.standardEnv" (dict "contextPath" "/notifications" "Values" .Values) | nindent 12 }}
             - name: NOTIFICATION_BATCH_ENABLED
               value: "true"
             - name: NOTIFICATION_BATCH_WINDOW_MS
               value: "10000"
             - name: NOTIFICATION_BATCH_MIN_BATCH_THRESHOLD
               value: "3"
-            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
-              value: "readinessState,diskSpace"
-            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-              value: "{{ .Values.kafka.bootstrapServers }}"
             - name: SPRING_KAFKA_NOTIFICATION_TOPIC
               value: "{{ .Values.kafka.notificationTopic }}"
+          {{ include "common.probes" (dict "contextPath" "/notifications" "Values" .Values) | nindent 10 }}
       volumes:
-        - name: firebase-config
-          secret:
-            secretName: {{ .Values.secrets.firebaseSecret }}
+        {{ include "common.firebaseVolume" . | nindent 8 }}

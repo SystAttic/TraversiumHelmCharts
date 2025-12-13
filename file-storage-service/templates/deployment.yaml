@@ -12,8 +12,7 @@ spec:
       labels:
         app: file-storage-service
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.secrets.imagePullSecret }}
+      {{- include "common.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: file-storage-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -21,14 +20,9 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
           volumeMounts:
-            - name: firebase-config
-              mountPath: /opt/file-storage-service/conf
-              readOnly: true
+            {{ include "common.firebaseVolumeMount" (dict "serviceName" "file-storage-service" "Values" .Values) | nindent 12 }}
           env:
-            - name: SERVER_PORT
-              value: "{{ .Values.service.port }}"
-            - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/files"
+            {{- include "common.serverEnv" (dict "contextPath" "/files" "Values" .Values) | nindent 12 }}
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ACCOUNT_NAME
               value: "{{ .Values.azure.storage.accountName }}"
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_CONTAINER_NAME
@@ -40,9 +34,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.azureStorageSecret }}
                   key: account-key
-            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
-              value: "readinessState,diskSpace"
+          {{ include "common.probes" (dict "contextPath" "/files" "Values" .Values) | nindent 10 }}
       volumes:
-        - name: firebase-config
-          secret:
-            secretName: {{ .Values.secrets.firebaseSecret }}
+        {{ include "common.firebaseVolume" . | nindent 8 }}

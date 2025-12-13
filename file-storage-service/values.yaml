@@ -19,3 +19,15 @@ azure:
     accountName: "traversium"
     containerName: "media"
     endpoint: "https://traversium.blob.core.windows.net/"
+
+probes:
+  liveness:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
