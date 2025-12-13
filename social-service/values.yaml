@@ -1,0 +1,20 @@
+image:
+  repository: ghcr.io/systattic/traversium-social-service
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: Always
+
+service:
+  port: 8094
+  type: ClusterIP
+
+replicaCount: 1
+
+secrets:
+  imagePullSecret: ghcr-secret
+  databaseSecret: neon-social-db-secret
+  firebaseSecret: firebase-secret
+
+kafka:
+  bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
+  auditTopic: "audit-topic"
+  notificationTopic: "notification-topic"

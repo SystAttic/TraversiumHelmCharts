@@ -18,6 +18,10 @@ services:
     name: trip-service
     path: /trips
     port: 80
+  social:
+    name: social-service
+    path: /social
+    port: 80
   # Add more services later
   # product:
   #   name: product-service

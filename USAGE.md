@@ -296,6 +296,13 @@ kubectl create secret generic neon-db-secret \
 
 # Restart deployment to pick up new secret
 kubectl rollout restart deployment user-service
+
+# Example to create database secret for new service
+majarazinger@Maja-Razinger-MacBook-Pro-M3 TraversiumHelmCharts % kubectl create secret generic neon-social-db-secret \
+  --from-literal=url='jdbc:postgresql://' \
+  --from-literal=username='NEW_USERNAME' \
+  --from-literal=password='NEW_PASSWORD'
+secret/neon-social-db-secret created
 ```
 
 ### Rollback Deployment
