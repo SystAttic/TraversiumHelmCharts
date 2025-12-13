@@ -190,6 +190,8 @@ kubectl get pods -l app.kubernetes.io/name=kafka
 
 # Check Kafka service
 kubectl get svc kafka
+
+To set kafka bootstrap server address for other services, use: kafka.kafka-test.svc.cluster.local:9092 where 'kafka-test' is the namespace.
 ```
 
 

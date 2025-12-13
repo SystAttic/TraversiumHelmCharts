@@ -10,6 +10,10 @@ services:
     name: notification-service
     path: /notifications
     port: 80
+  auditor:
+    name: audit-service
+    path: /audit
+    port: 80
   # Add more services later
   # product:
   #   name: product-service

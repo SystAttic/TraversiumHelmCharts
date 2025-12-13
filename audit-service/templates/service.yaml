@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: {{ .Values.service.port }}
+  selector:
+    app: audit-service
