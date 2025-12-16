@@ -172,8 +172,7 @@ helm repo update
 
 # Install Kafka (it installs it in new namespace 'kafka-test')
 # NUJNO 1 REPLICA COUNT K JE CLUSTRU ZMANKAL MEMORY (3je porabjo 1.5GB)
-helm install kafka \
-    oci://registry-1.docker.io/bitnamicharts/kafka \
+  helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka \
     --version 32.0.1 \
     --namespace kafka-test \
     --create-namespace \
@@ -185,7 +184,8 @@ helm install kafka \
     --set listeners.controller.protocol=PLAINTEXT \
     --set auth.clientProtocol=plaintext \
     --set auth.interBrokerProtocol=plaintext \
-    --set replica.count=1 
+    --set controller.replicaCount=1 \
+    --set controller.heapOpts="-Xmx512m -Xms512m"
 
 # Verify Kafka is running
 kubectl get pods -l app.kubernetes.io/name=kafka
@@ -280,6 +280,118 @@ Import pre-built dashboards for monitoring:
    - **Kubernetes Cluster**: `315` (for Kubernetes monitoring)
 3. Select **Prometheus** as data source
 4. Click **Import**
+
+---
+
+## Deploy ELK Stack (Elasticsearch, Logstash, Kibana)
+
+ELK stack is used for centralized logging and log analysis.
+
+### Add Elastic Helm Repository
+
+```bash
+# Add the Elastic Helm repository
+helm repo add elastic https://helm.elastic.co
+helm repo update
+```
+
+### Install Elasticsearch
+
+```bash
+# Install Elasticsearch in monitoring namespace (traja neki časa)
+ helm install elasticsearch elastic/elasticsearch \
+    --namespace efk\
+    --set replicas=1 \
+    --set esJavaOpts="-Xms512m -Xmx512m" \
+    --set resources.requests.cpu="250m" \
+    --set resources.limits.cpu="500m" \
+    --set resources.requests.memory="1Gi" \
+    --set resources.limits.memory="1250Mi" \
+    --set clusterHealthCheckParams="wait_for_status=yellow&timeout=60s" \
+    --set minimumMasterNodes=1
+
+# Verify Elasticsearch is running
+kubectl get pods -n monitoring | grep elasticsearch
+```
+### Install Kibana
+
+```bash
+# Install Kibana in monitoring namespace (2 minuti)
+helm install kibana elastic/kibana \
+     --namespace efk \
+     --set elasticsearchHosts="https://elasticsearch-master:9200" \
+     --set resources.requests.cpu="250m" \
+     --set resources.limits.cpu="500m" \
+     --set resources.requests.memory="512Mi" \
+     --set resources.limits.memory="1Gi"
+# Verify Kibana is running
+kubectl get pods -n monitoring | grep kibana
+```
+
+### Install Fluent Bit (Log Collection)
+
+```bash
+# Add Fluent Helm repository
+helm repo add fluent https://fluent.github.io/helm-charts
+helm repo update
+
+# Install Fluent Bit as DaemonSet (runs on each node)
+helm install fluent-bit fluent/fluent-bit \
+     --namespace efk \
+     -f efk/fluent-bit-values.yaml
+
+# Verify Fluent Bit is running
+kubectl get pods -n monitoring | grep fluent-bit
+```
+
+### Access Kibana UI
+
+```bash
+# Port-forward to access Kibana locally
+kubectl port-forward -n monitoring svc/kibana-kibana 5601:5601
+```
+
+Then open http://localhost:5601 in your browser.
+
+### Configure Kibana
+
+1. Open Kibana at http://localhost:5601
+2. Go to **Management** → **Stack Management** → **Index Patterns**
+3. Create index pattern: `fluentbit-*`
+4. Select `@timestamp` as the time field
+5. Go to **Discover** to view your logs
+
+### Optional: Add Kibana to Ingress
+
+To expose Kibana through your ingress (instead of port-forwarding):
+
+1. Edit `ingress/values.yaml` and add:
+```yaml
+  kibana:
+    name: kibana-kibana
+    path: /kibana
+    port: 5601
+```
+
+2. Upgrade your ingress:
+```bash
+helm upgrade traversium-ingress ./ingress
+```
+
+Then access Kibana at: `http://<INGRESS-IP>/kibana`
+
+### Verify ELK Stack
+
+```bash
+# Check all ELK pods are running
+kubectl get pods -n monitoring | grep -E 'elasticsearch|kibana|fluent-bit'
+
+# Check Elasticsearch health
+kubectl exec -n monitoring elasticsearch-master-0 -- curl -s http://localhost:9200/_cluster/health?pretty
+
+# View Fluent Bit logs
+kubectl logs -n monitoring -l app.kubernetes.io/name=fluent-bit --tail=50
+```
 
 ---
 

@@ -26,10 +26,6 @@ services:
     name: file-storage-service
     path: /files
     port: 80
-  grafana:
-    name: grafana
-    path: /grafana
-    port: 80
   # Add more services later
   # product:
   #   name: product-service

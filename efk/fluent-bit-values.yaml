@@ -1,0 +1,29 @@
+config:
+  outputs: |
+    [OUTPUT]
+        Name            es
+        Match           *
+        Host            elasticsearch-master
+        Port            9200
+        HTTP_User       elastic
+        HTTP_Passwd     ${ELASTICSEARCH_PASSWORD}
+        tls             On
+        tls.verify      Off
+        Logstash_Format On
+        Retry_Limit     False
+        Suppress_Type_Name On
+
+env:
+  - name: ELASTICSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-master-credentials
+        key: password
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
