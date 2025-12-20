@@ -1,0 +1,56 @@
+image:
+  repository: ghcr.io/systattic/traversium-moderation-service
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8096
+  grpcPort: 9090
+  type: ClusterIP
+
+replicaCount: 1
+
+secrets:
+  imagePullSecret: ghcr-secret
+  azureModerationSecret: azure-moderation-secret
+
+azure:
+  contentSafety:
+    endpoint: "https://traversium-moderation.cognitiveservices.azure.com"
+    apiVersion: "2024-09-01"
+
+moderation:
+  policy:
+    blockSeverity: 2
+
+resilience4j:
+  circuitBreaker:
+    azureModeration:
+      slidingWindowSize: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 30s
+    configs:
+      default:
+        registerHealthIndicator: true
+  retry:
+    azureModeration:
+      maxAttempts: 2
+      waitDuration: 1s
+      retryExceptions: "io.grpc.StatusRuntimeException"
+
+probes:
+  startup:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30  # 30 * 10 = 300 seconds max startup time
+  liveness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3

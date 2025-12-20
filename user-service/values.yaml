@@ -22,14 +22,14 @@ kafka:
 grpc:
   server:
     host: "trip-service"
-    port: 9090
+    port: 9091
 
 probes:
   startup:
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
-    failureThreshold: 30  # 30 * 10 = 300 seconds max startup time
+    failureThreshold: 30
   liveness:
     initialDelaySeconds: 5
     periodSeconds: 10

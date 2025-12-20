@@ -242,7 +242,11 @@ Grafana is used for visualizing metrics from Prometheus.
 
 ```bash
 # Install Grafana in monitoring namespace
-helm install grafana grafana/grafana --namespace monitoring
+helm install grafana grafana/grafana \
+     --namespace monitoring \
+     --reuse-values \
+     --set 'grafana\.ini'.server.root_url="http://<public_ip>/grafana" \
+     --set 'grafana\.ini'.server.serve_from_sub_path=true
 
 # Verify Grafana is running
 kubectl get pods -n monitoring | grep grafana
@@ -385,25 +389,6 @@ geslo:
 ```bash
 kubectl get secret elasticsearch-master-credentials -n efk -o jsonpath="{.data.password}" | base64 --decode ; echo 
 ```
-
-### Optional: Add Kibana to Ingress
-
-To expose Kibana through your ingress (instead of port-forwarding):
-
-1. Edit `ingress/values.yaml` and add:
-```yaml
-  kibana:
-    name: kibana-kibana
-    path: /kibana
-    port: 5601
-```
-
-2. Upgrade your ingress:
-```bash
-helm upgrade traversium-ingress ./ingress
-```
-
-Then access Kibana at: `http://<INGRESS-IP>/kibana`
 
 ### Verify ELK Stack
 

@@ -30,6 +30,12 @@ spec:
               value: "{{ .Values.kafka.auditTopic }}"
             - name: SPRING_KAFKA_NOTIFICATION_TOPIC
               value: "{{ .Values.kafka.notificationTopic }}"
+            - name: SPRING_GRPC_SERVER_PORT
+              value: "{{ .Values.grpc.server.port }}"
+            - name: GRPC_CLIENT_MODERATION_SERVICE_HOST
+              value: "{{ .Values.grpc.client.moderation.host }}"
+            - name: GRPC_CLIENT_MODERATION_SERVICE_PORT
+              value: "{{ .Values.grpc.client.moderation.port }}"
           {{ include "common.probes" (dict "contextPath" "/trips" "Values" .Values) | nindent 10 }}
       volumes:
         {{ include "common.firebaseVolume" . | nindent 8 }}

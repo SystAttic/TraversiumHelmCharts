@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moderation-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: moderation-service
+  template:
+    metadata:
+      labels:
+        app: moderation-service
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "/moderation" "Values" .Values) | nindent 8 }}
+    spec:
+      {{ include "common.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: moderation-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+            - containerPort: {{ .Values.service.grpcPort }}
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.service.port }}"
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/moderation"
+            - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
+              value: "true"
+            - name: SPRING_GRPC_SERVER_PORT
+              value: "{{ .Values.service.grpcPort }}"
+
+            - name: AZURE_CONTENTSAFETY_ENDPOINT
+              value: "{{ .Values.azure.contentSafety.endpoint }}"
+            - name: AZURE_CONTENTSAFETY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.azureModerationSecret }}
+                  key: api-key
+            - name: AZURE_CONTENTSAFETY_API_VERSION
+              value: "{{ .Values.azure.contentSafety.apiVersion }}"
+
+            - name: MODERATION_POLICY_BLOCK_SEVERITY
+              value: "{{ .Values.moderation.policy.blockSeverity }}"
+
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_AZUREMODERATION_SLIDING_WINDOW_SIZE
+              value: "{{ .Values.resilience4j.circuitBreaker.azureModeration.slidingWindowSize }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_AZUREMODERATION_FAILURE_RATE_THRESHOLD
+              value: "{{ .Values.resilience4j.circuitBreaker.azureModeration.failureRateThreshold }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_AZUREMODERATION_WAIT_DURATION_IN_OPEN_STATE
+              value: "{{ .Values.resilience4j.circuitBreaker.azureModeration.waitDurationInOpenState }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_CONFIGS_DEFAULT_REGISTER_HEALTH_INDICATOR
+              value: "{{ .Values.resilience4j.circuitBreaker.configs.default.registerHealthIndicator }}"
+
+            - name: RESILIENCE4J_RETRY_INSTANCES_AZUREMODERATION_MAX_ATTEMPTS
+              value: "{{ .Values.resilience4j.retry.azureModeration.maxAttempts }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_AZUREMODERATION_WAIT_DURATION
+              value: "{{ .Values.resilience4j.retry.azureModeration.waitDuration }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_AZUREMODERATION_RETRY_EXCEPTIONS
+              value: "{{ .Values.resilience4j.retry.azureModeration.retryExceptions }}"
+
+            {{ include "common.managementEnv" . | nindent 12 }}
+            - name: MANAGEMENT_HEALTH_GRPC_ENABLED
+              value: "true"
+            {{ include "common.managementHealthNoDb" . | nindent 12 }}
+          {{ include "common.probes" (dict "contextPath" "/moderation" "Values" .Values) | nindent 10 }}
