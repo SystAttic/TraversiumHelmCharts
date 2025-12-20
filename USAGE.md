@@ -173,19 +173,23 @@ helm repo update
 # Install Kafka (it installs it in new namespace 'kafka-test')
 # NUJNO 1 REPLICA COUNT K JE CLUSTRU ZMANKAL MEMORY (3je porabjo 1.5GB)
   helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka \
-    --version 32.0.1 \
-    --namespace kafka-test \
-    --create-namespace \
-    --set image.registry=docker.io \
-    --set image.repository=bitnamilegacy/kafka \
-    --set image.tag=4.0.0-debian-12-r0 \
-    --set global.security.allowInsecureImages=true \
-    --set listeners.client.protocol=PLAINTEXT \
-    --set listeners.controller.protocol=PLAINTEXT \
-    --set auth.clientProtocol=plaintext \
-    --set auth.interBrokerProtocol=plaintext \
-    --set controller.replicaCount=1 \
-    --set controller.heapOpts="-Xmx512m -Xms512m"
+      --version 32.0.1 \
+      --namespace kafka-test \
+      --create-namespace \
+      --set image.registry=docker.io \
+      --set image.repository=bitnamilegacy/kafka \
+      --set image.tag=4.0.0-debian-12-r0 \
+      --set global.security.allowInsecureImages=true \
+      --set listeners.client.protocol=PLAINTEXT \
+      --set listeners.controller.protocol=PLAINTEXT \
+      --set auth.clientProtocol=plaintext \
+      --set auth.interBrokerProtocol=plaintext \
+      --set controller.replicaCount=1 \
+      --set controller.heapOpts="-Xmx512m -Xms512m" \
+      --set controller.resources.requests.cpu="250m" \
+      --set controller.resources.limits.cpu="500m" \
+      --set controller.resources.requests.memory="1Gi" \
+      --set controller.resources.limits.memory="1Gi"
 
 # Verify Kafka is running
 kubectl get pods -l app.kubernetes.io/name=kafka
@@ -300,18 +304,32 @@ helm repo update
 ```bash
 # Install Elasticsearch in monitoring namespace (traja neki časa)
  helm install elasticsearch elastic/elasticsearch \
-    --namespace efk\
-    --set replicas=1 \
-    --set esJavaOpts="-Xms512m -Xmx512m" \
-    --set resources.requests.cpu="250m" \
-    --set resources.limits.cpu="500m" \
-    --set resources.requests.memory="1Gi" \
-    --set resources.limits.memory="1250Mi" \
-    --set clusterHealthCheckParams="wait_for_status=yellow&timeout=60s" \
-    --set minimumMasterNodes=1
+       --namespace efk \
+       --set replicas=1 \
+       --set esJavaOpts="-Xms1g -Xmx1g" \
+       --set resources.requests.cpu="250m" \
+       --set resources.limits.cpu="500m" \
+       --set resources.requests.memory="2Gi" \
+       --set resources.limits.memory="2Gi" \
+       --set clusterHealthCheckParams="wait_for_status=yellow&timeout=60s" \
+       --set minimumMasterNodes=1
 
 # Verify Elasticsearch is running
 kubectl get pods -n monitoring | grep elasticsearch
+
+# Delete Logs after 1 day so index doesn't grow too much
+ kubectl exec elasticsearch-master-0 -n efk -- curl -s -k -u elastic:gCE07s2Ab76r2AyF -X PUT 'https://localhost:9200/_ilm/policy/fluentbit-cleanup-policy' -H 'Content-Type: application/json' -d '{
+    "policy": {
+      "phases": {
+        "delete": {
+          "min_age": "1d",
+          "actions": {
+            "delete": {}
+          }
+        }
+      }
+    }
+  }'
 ```
 ### Install Kibana
 
@@ -360,6 +378,13 @@ Then open http://localhost:5601 in your browser.
 3. Create index pattern: `fluentbit-*`
 4. Select `@timestamp` as the time field
 5. Go to **Discover** to view your logs
+
+username: `elastic`
+
+geslo:
+```bash
+kubectl get secret elasticsearch-master-credentials -n efk -o jsonpath="{.data.password}" | base64 --decode ; echo 
+```
 
 ### Optional: Add Kibana to Ingress
 
