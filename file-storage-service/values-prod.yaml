@@ -1,0 +1,17 @@
+image:
+  tag: "1.0.0-SNAPSHOT"
+
+secrets:
+  azureStorageSecret: azure-storage-secret-prod
+  firebaseSecret: firebase-secret-prod
+
+azure:
+  storage:
+    containerName: "media-prod"
+
+probes:
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 15
+  readiness:
+    initialDelaySeconds: 10

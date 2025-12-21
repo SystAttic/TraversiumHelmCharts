@@ -1,0 +1,32 @@
+image:
+  tag: "latest"
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+secrets:
+  databaseSecret: neon-audit-db-secret-dev
+  firebaseSecret: firebase-secret-dev
+
+kafka:
+  auditTopic: "audit-topic-dev"
+
+probes:
+  startup:
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    timeoutSeconds: 3
+  liveness:
+    timeoutSeconds: 3
+  readiness:
+    periodSeconds: 5
+    timeoutSeconds: 3
+
+logging:
+  level: DEBUG

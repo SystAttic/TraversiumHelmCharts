@@ -29,10 +29,50 @@ spec:
               value: "{{ .Values.kafka.notificationTopic }}"
             - name: SPRING_KAFKA_AUDIT_TOPIC
               value: "{{ .Values.kafka.auditTopic }}"
-            - name: GRPC_SERVER_HOST
-              value: "{{ .Values.grpc.server.host }}"
-            - name: GRPC_SERVER_PORT
-              value: "{{ .Values.grpc.server.port }}"
+            - name: GRPC_TRIP_HOST
+              value: "{{ .Values.grpc.client.trip.host }}"
+            - name: GRPC_TRIP_PORT
+              value: "{{ .Values.grpc.client.trip.port }}"
+            - name: GRPC_MODERATION_HOST
+              value: "{{ .Values.grpc.client.moderation.host }}"
+            - name: GRPC_MODERATION_PORT
+              value: "{{ .Values.grpc.client.moderation.port }}"
+
+            # Resilience4j Circuit Breaker - Trip Service
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_TRIPSERVICEGRPC_SLIDING_WINDOW_SIZE
+              value: "{{ .Values.resilience4j.circuitBreaker.tripServiceGrpc.slidingWindowSize }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_TRIPSERVICEGRPC_FAILURE_RATE_THRESHOLD
+              value: "{{ .Values.resilience4j.circuitBreaker.tripServiceGrpc.failureRateThreshold }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_TRIPSERVICEGRPC_WAIT_DURATION_IN_OPEN_STATE
+              value: "{{ .Values.resilience4j.circuitBreaker.tripServiceGrpc.waitDurationInOpenState }}"
+
+            # Resilience4j Circuit Breaker - Moderation Service
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_MODERATIONSERVICEGRPC_SLIDING_WINDOW_SIZE
+              value: "{{ .Values.resilience4j.circuitBreaker.moderationServiceGrpc.slidingWindowSize }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_MODERATIONSERVICEGRPC_FAILURE_RATE_THRESHOLD
+              value: "{{ .Values.resilience4j.circuitBreaker.moderationServiceGrpc.failureRateThreshold }}"
+            - name: RESILIENCE4J_CIRCUITBREAKER_INSTANCES_MODERATIONSERVICEGRPC_WAIT_DURATION_IN_OPEN_STATE
+              value: "{{ .Values.resilience4j.circuitBreaker.moderationServiceGrpc.waitDurationInOpenState }}"
+
+            # Resilience4j Circuit Breaker Config
+            - name: RESILIENCE4J_CIRCUITBREAKER_CONFIGS_DEFAULT_REGISTER_HEALTH_INDICATOR
+              value: "{{ .Values.resilience4j.circuitBreaker.configs.default.registerHealthIndicator }}"
+
+            # Resilience4j Retry - Trip Service
+            - name: RESILIENCE4J_RETRY_INSTANCES_TRIPSERVICEGRPC_MAX_ATTEMPTS
+              value: "{{ .Values.resilience4j.retry.tripServiceGrpc.maxAttempts }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_TRIPSERVICEGRPC_WAIT_DURATION
+              value: "{{ .Values.resilience4j.retry.tripServiceGrpc.waitDuration }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_TRIPSERVICEGRPC_RETRY_EXCEPTIONS
+              value: "{{ .Values.resilience4j.retry.tripServiceGrpc.retryExceptions }}"
+
+            # Resilience4j Retry - Moderation Service
+            - name: RESILIENCE4J_RETRY_INSTANCES_MODERATIONSERVICEGRPC_MAX_ATTEMPTS
+              value: "{{ .Values.resilience4j.retry.moderationServiceGrpc.maxAttempts }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_MODERATIONSERVICEGRPC_WAIT_DURATION
+              value: "{{ .Values.resilience4j.retry.moderationServiceGrpc.waitDuration }}"
+            - name: RESILIENCE4J_RETRY_INSTANCES_MODERATIONSERVICEGRPC_RETRY_EXCEPTIONS
+              value: "{{ .Values.resilience4j.retry.moderationServiceGrpc.retryExceptions }}"
           {{ include "common.probes" (dict "contextPath" "/users" "Values" .Values) | nindent 10 }}
       volumes:
         {{ include "common.firebaseVolume" . | nindent 8 }}

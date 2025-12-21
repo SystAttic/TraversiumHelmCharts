@@ -117,34 +117,93 @@ kubectl delete secret SECRET_NAME
 traversium-helm-charts/
 ├── user-service/
 │   ├── Chart.yaml
-│   ├── values.yaml
+│   ├── values.yaml          # Default/common configuration
+│   ├── values-dev.yaml       # Development overrides
+│   ├── values-prod.yaml      # Production overrides
 │   └── templates/
 │       ├── deployment.yaml
 │       └── service.yaml
-├── product-service/
+├── trip-service/
 │   └── ...
 └── ingress/
     ├── Chart.yaml
     ├── values.yaml
+    ├── values-dev.yaml
+    ├── values-prod.yaml
     └── templates/
         └── ingress.yaml
 ```
 
-### Deploy User Service
+### Environment-Specific Deployments
+
+Each service has three values files:
+- **values.yaml**: Common configuration shared across all environments
+- **values-dev.yaml**: Development-specific settings (lower resources, debug logging, `-dev` secrets/topics)
+- **values-prod.yaml**: Production-specific settings (higher resources, multiple replicas, prod secrets)
+
+### Deploy to Development
 
 ```bash
 cd traversium-helm-charts
 
-# Initial deployment
-helm install user-service ./user-service
+# Deploy user service to development
+helm upgrade --install user-service ./user-service \
+  -f ./user-service/values.yaml \
+  -f ./user-service/values-dev.yaml \
+  --namespace dev \
+  --create-namespace
 
-# Watch deployment
-kubectl get pods -w
+# Deploy all services to development
+helm upgrade --install trip-service ./trip-service -f ./trip-service/values.yaml -f ./trip-service/values-dev.yaml -n dev --create-namespace
+helm upgrade --install notification-service ./notification-service -f ./notification-service/values.yaml -f ./notification-service/values-dev.yaml -n dev --create-namespace
+helm upgrade --install audit-service ./audit-service -f ./audit-service/values.yaml -f ./audit-service/values-dev.yaml -n dev --create-namespace
+helm upgrade --install social-service ./social-service -f ./social-service/values.yaml -f ./social-service/values-dev.yaml -n dev --create-namespace
+helm upgrade --install file-storage-service ./file-storage-service -f ./file-storage-service/values.yaml -f ./file-storage-service/values-dev.yaml -n dev --create-namespace
+helm upgrade --install moderation-service ./moderation-service -f ./moderation-service/values.yaml -f ./moderation-service/values-dev.yaml -n dev --create-namespace
 
-# Check deployment status
-kubectl get deployments
-kubectl get pods
-kubectl get services
+# Deploy ingress to development
+helm upgrade --install ingress ./ingress -f ./ingress/values.yaml -f ./ingress/values-dev.yaml -n dev --create-namespace
+```
+
+### Deploy to Production
+
+```bash
+cd traversium-helm-charts
+
+# Deploy user service to production
+helm upgrade --install user-service ./user-service \
+  -f ./user-service/values.yaml \
+  -f ./user-service/values-prod.yaml \
+  --namespace production \
+  --create-namespace
+
+# Deploy all services to production
+helm upgrade --install trip-service ./trip-service -f ./trip-service/values.yaml -f ./trip-service/values-prod.yaml -n production --create-namespace
+helm upgrade --install notification-service ./notification-service -f ./notification-service/values.yaml -f ./notification-service/values-prod.yaml -n production --create-namespace
+helm upgrade --install audit-service ./audit-service -f ./audit-service/values.yaml -f ./audit-service/values-prod.yaml -n production --create-namespace
+helm upgrade --install social-service ./social-service -f ./social-service/values.yaml -f ./social-service/values-prod.yaml -n production --create-namespace
+helm upgrade --install file-storage-service ./file-storage-service -f ./file-storage-service/values.yaml -f ./file-storage-service/values-prod.yaml -n production --create-namespace
+helm upgrade --install moderation-service ./moderation-service -f ./moderation-service/values.yaml -f ./moderation-service/values-prod.yaml -n production --create-namespace
+
+# Deploy ingress to production
+helm upgrade --install ingress ./ingress -f ./ingress/values.yaml -f ./ingress/values-prod.yaml -n production --create-namespace
+```
+
+### Check Deployment Status
+
+```bash
+# Watch deployment in specific namespace
+kubectl get pods -n production -w
+
+# Check all resources in production
+kubectl get all -n production
+
+# Check all resources in dev
+kubectl get all -n dev
+
+# View actual values used in deployment
+helm get values user-service -n production
+helm get values user-service -n dev
 ```
 
 ### Deploy Ingress Controller
@@ -183,13 +242,7 @@ helm repo update
       --set listeners.client.protocol=PLAINTEXT \
       --set listeners.controller.protocol=PLAINTEXT \
       --set auth.clientProtocol=plaintext \
-      --set auth.interBrokerProtocol=plaintext \
-      --set controller.replicaCount=1 \
-      --set controller.heapOpts="-Xmx512m -Xms512m" \
-      --set controller.resources.requests.cpu="250m" \
-      --set controller.resources.limits.cpu="500m" \
-      --set controller.resources.requests.memory="1Gi" \
-      --set controller.resources.limits.memory="1Gi"
+      --set auth.interBrokerProtocol=plaintext
 
 # Verify Kafka is running
 kubectl get pods -l app.kubernetes.io/name=kafka
@@ -340,12 +393,14 @@ kubectl get pods -n monitoring | grep elasticsearch
 ```bash
 # Install Kibana in monitoring namespace (2 minuti)
 helm install kibana elastic/kibana \
-     --namespace efk \
-     --set elasticsearchHosts="https://elasticsearch-master:9200" \
-     --set resources.requests.cpu="250m" \
-     --set resources.limits.cpu="500m" \
-     --set resources.requests.memory="512Mi" \
-     --set resources.limits.memory="1Gi"
+  --namespace efk \
+  --set elasticsearchHosts="https://elasticsearch-master:9200" \
+  --set resources.requests.cpu="250m" \
+  --set resources.limits.cpu="500m" \
+  --set resources.requests.memory="512Mi" \
+  --set resources.limits.memory="1Gi" \
+  --set kibanaConfig."xpack\.encryptedSavedObjects\.encryptionKey"="zF6nL9vB8qP2rX0tV3mY5cJ7sH1kW8dA"
+
 # Verify Kibana is running
 kubectl get pods -n monitoring | grep kibana
 ```
@@ -368,12 +423,34 @@ kubectl get pods -n monitoring | grep fluent-bit
 
 ### Access Kibana UI
 
+**Option 1: Port Forwarding (Quick Access)**
 ```bash
 # Port-forward to access Kibana locally
-kubectl port-forward -n monitoring svc/kibana-kibana 5601:5601
+kubectl port-forward -n efk-prod svc/kibana-kibana 5601:5601
 ```
 
 Then open http://localhost:5601 in your browser.
+
+**Option 2: Ingress (Production Access)**
+
+Deploy the Kibana Ingress to expose Kibana through the nginx ingress controller:
+
+```bash
+# Apply the Kibana ingress to production namespace
+kubectl apply -f efk/kibana-ingress.yaml -n efk-prod
+```
+
+After deploying the ingress, Kibana will be accessible at:
+```
+http://<INGRESS-IP>/
+```
+
+To get the Ingress IP:
+```bash
+kubectl get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+**Note:** The ingress configuration in `efk/kibana-ingress.yaml` routes traffic on path `/` to the Kibana service on port 5601.
 
 ### Configure Kibana
 
@@ -445,83 +522,70 @@ kubectl logs -l app=user-service
 
 ## Updating Services
 
-### Update Docker Image
-
-#### Method 1: Update values.yaml (Recommended)
-
-```bash
-# Edit values.yaml
-cd user-service
-# Change image.tag: "1.0.1"
-
-# Upgrade deployment
-helm upgrade user-service ./user-service
-```
-
-#### Method 2: Command Line Override
-
-```bash
-helm upgrade user-service ./user-service \
-  --set image.tag=1.0.1
-```
-
-#### Method 3: Force Pull Same Tag
-
-If you updated the image but kept the same tag:
-
-```bash
-# Update values.yaml: pullPolicy: Always
-
-# Or restart deployment
-kubectl rollout restart deployment user-service
-```
-
 ### Update Configuration
 
 ```bash
-# Edit values.yaml with new config
-
-# Upgrade deployment
-helm upgrade user-service ./user-service
+helm upgrade user-service ./user-service \
+  -f values.yaml \
+  -f values-prod.yaml \
+  -n production
 
 # Check rollout status
-kubectl rollout status deployment user-service
+kubectl rollout status deployment user-service -n production
 ```
 
 ### Update Secrets
 
-```bash
-# Delete old secret
-kubectl delete secret neon-db-secret
+When using environment-specific deployments, create separate secrets for each environment:
 
-# Create new secret
-kubectl create secret generic neon-db-secret \
+```bash
+# Development secrets (in dev namespace)
+kubectl create secret generic neon-user-db-secret-dev \
+  --from-literal=url='jdbc:postgresql://dev-db.neon.tech/neondb?sslmode=require' \
+  --from-literal=username='dev_user' \
+  --from-literal=password='DEV_PASSWORD' \
+  -n dev
+
+kubectl create secret generic firebase-secret-dev \
+  --from-file=traversium.json=/path/to/firebase-dev-credentials.json \
+  -n dev
+
+# Production secrets (in production namespace)
+kubectl create secret generic neon-user-db-secret-prod \
+  --from-literal=url='jdbc:postgresql://prod-db.neon.tech/neondb?sslmode=require' \
+  --from-literal=username='prod_user' \
+  --from-literal=password='PROD_PASSWORD' \
+  -n production
+
+kubectl create secret generic firebase-secret-prod \
+  --from-file=traversium.json=/path/to/firebase-prod-credentials.json \
+  -n production
+
+# Update existing secret
+kubectl delete secret neon-user-db-secret-dev -n dev
+kubectl create secret generic neon-user-db-secret-dev \
   --from-literal=url='NEW_URL' \
   --from-literal=username='NEW_USERNAME' \
-  --from-literal=password='NEW_PASSWORD'
+  --from-literal=password='NEW_PASSWORD' \
+  -n dev
 
 # Restart deployment to pick up new secret
-kubectl rollout restart deployment user-service
-
-# Example to create database secret for new service
-majarazinger@Maja-Razinger-MacBook-Pro-M3 TraversiumHelmCharts % kubectl create secret generic neon-social-db-secret \
-  --from-literal=url='jdbc:postgresql://' \
-  --from-literal=username='NEW_USERNAME' \
-  --from-literal=password='NEW_PASSWORD'
-secret/neon-social-db-secret created
+kubectl rollout restart deployment user-service -n dev
 ```
 
 ### Rollback Deployment
 
 ```bash
-# View revision history
-helm history user-service
+# View revision history for specific environment
+helm history user-service -n production
+helm history user-service -n dev
 
 # Rollback to previous version
-helm rollback user-service
+helm rollback user-service -n production
+helm rollback user-service -n dev
 
 # Rollback to specific revision
-helm rollback user-service 2
+helm rollback user-service 2 -n production
 ```
 
 ---

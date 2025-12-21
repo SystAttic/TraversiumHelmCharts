@@ -1,3 +1,5 @@
+# Common/Default configuration
+
 image:
   repository: ghcr.io/systattic/traversium-audit-service
   tag: "1.2.0-SNAPSHOT"
@@ -8,6 +10,14 @@ service:
   type: ClusterIP
 
 replicaCount: 1
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
 
 secrets:
   imagePullSecret: ghcr-secret
@@ -34,3 +44,6 @@ probes:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
+
+logging:
+  level: INFO

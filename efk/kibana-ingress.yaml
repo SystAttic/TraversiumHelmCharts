@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: kibana-ingress
-  namespace: efk
+  namespace: efk-prod
 spec:
   ingressClassName: nginx
   rules:

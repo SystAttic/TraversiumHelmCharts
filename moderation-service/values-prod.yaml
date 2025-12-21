@@ -1,0 +1,16 @@
+image:
+  tag: "1.1.0-SNAPSHOT"
+
+secrets:
+  azureModerationSecret: azure-moderation-secret-prod
+
+moderation:
+  policy:
+    blockSeverity: 2
+
+probes:
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 15
+  readiness:
+    initialDelaySeconds: 10

@@ -9,9 +9,17 @@ service:
 
 replicaCount: 1
 
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
 secrets:
   imagePullSecret: ghcr-secret
-  databaseSecret: neon-db-secret
+  databaseSecret: neon-user-db-secret
   firebaseSecret: firebase-secret
 
 kafka:
@@ -20,9 +28,36 @@ kafka:
   auditTopic: "audit-topic"
 
 grpc:
-  server:
-    host: "trip-service"
-    port: 9091
+  client:
+    trip:
+      host: "trip-service"
+      port: 9091
+    moderation:
+      host: "moderation-service"
+      port: 9090
+
+resilience4j:
+  circuitBreaker:
+    tripServiceGrpc:
+      slidingWindowSize: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+    moderationServiceGrpc:
+      slidingWindowSize: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10s
+    configs:
+      default:
+        registerHealthIndicator: true
+  retry:
+    tripServiceGrpc:
+      maxAttempts: 3
+      waitDuration: 1s
+      retryExceptions: "io.grpc.StatusRuntimeException"
+    moderationServiceGrpc:
+      maxAttempts: 3
+      waitDuration: 1s
+      retryExceptions: "io.grpc.StatusRuntimeException"
 
 probes:
   startup:
@@ -40,3 +75,6 @@ probes:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
+
+logging:
+  level: INFO

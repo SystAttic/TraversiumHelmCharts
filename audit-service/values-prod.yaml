@@ -1,0 +1,16 @@
+image:
+  tag: "1.2.0-SNAPSHOT"
+
+secrets:
+  databaseSecret: neon-audit-db-secret-prod
+  firebaseSecret: firebase-secret-prod
+
+kafka:
+  bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
+
+probes:
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 15
+  readiness:
+    initialDelaySeconds: 10

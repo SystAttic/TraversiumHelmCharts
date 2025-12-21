@@ -1,0 +1,42 @@
+# Development overrides - only specify what differs from values.yaml
+
+image:
+  tag: "latest"
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+secrets:
+  databaseSecret: neon-user-db-secret-dev
+  firebaseSecret: firebase-secret-dev
+
+kafka:
+  notificationTopic: "notification-topic-dev"
+  auditTopic: "audit-topic-dev"
+
+resilience4j:
+  circuitBreaker:
+    tripServiceGrpc:
+      slidingWindowSize: 5
+      failureRateThreshold: 60
+      waitDurationInOpenState: 5s
+    moderationServiceGrpc:
+      slidingWindowSize: 5
+      failureRateThreshold: 60
+      waitDurationInOpenState: 5s
+  retry:
+    tripServiceGrpc:
+      maxAttempts: 2
+      waitDuration: 500ms
+    moderationServiceGrpc:
+      maxAttempts: 2
+      waitDuration: 500ms
+
+logging:
+  level: DEBUG

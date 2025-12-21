@@ -1,0 +1,10 @@
+image:
+  tag: "1.2.0-SNAPSHOT"
+  pullPolicy: IfNotPresent
+
+secrets:
+  databaseSecret: neon-user-db-secret-prod
+  firebaseSecret: firebase-secret-prod
+
+kafka:
+  bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
