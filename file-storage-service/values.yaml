@@ -49,3 +49,11 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  applicationName: FileStorageService  
+  failFast: false
+  bus:
+    enabled: true
+    refreshEnabled: true

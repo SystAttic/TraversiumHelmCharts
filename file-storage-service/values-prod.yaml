@@ -15,3 +15,7 @@ probes:
     periodSeconds: 15
   readiness:
     initialDelaySeconds: 10
+
+configServer:
+  enabled: true
+  

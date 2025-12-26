@@ -51,3 +51,11 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  applicationName: SocialService  
+  failFast: false
+  bus:
+    enabled: true
+    refreshEnabled: true

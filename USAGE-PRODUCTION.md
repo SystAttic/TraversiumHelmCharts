@@ -9,6 +9,9 @@ Complete guide for deploying the Traversium application to production on Kuberne
 4. [Deploy Application Services](#deploy-application-services)
 5. [Verify Deployment](#verify-deployment)
 6. [Access Services](#access-services)
+7. [Troubleshooting](#troubleshooting)
+8. [Updating Services](#updating-services)
+9. [Cleanup](#cleanup)
 
 ---
 
@@ -389,7 +392,47 @@ helm upgrade --install moderation-service ./moderation-service \
 kubectl get pods -n production -l app=moderation-service
 ```
 
-### 8. Deploy Ingress Rules
+### 8. Deploy Config Server
+
+The Config Server provides centralized configuration management for all microservices.
+
+**Note:** If your repository is public, you can skip this step.
+
+#### 8.1 Deploy Config Server
+
+```bash
+# Update Helm dependencies
+helm dependency update config-server/
+
+# Deploy config-server
+helm upgrade --install config-server ./config-server \
+  -f ./config-server/values.yaml \
+  -f ./config-server/values-prod.yaml \
+  -n production
+
+# Verify deployment
+kubectl get pods -n production -l app=config-server
+kubectl logs -n production -l app=config-server --tail=50
+```
+
+Wait for the pod to be in `Running` state and `READY 1/1`.
+
+#### 8.2 Test Config Server
+
+```bash
+# Port forward to access config-server
+kubectl port-forward -n production svc/config-server 8888:80
+
+# In another terminal, test fetching configuration
+curl http://localhost:8888/UserService/default
+curl http://localhost:8888/TripService/default
+curl http://localhost:8888/NotificationService/default
+curl http://localhost:8888/ModerationService/default
+```
+
+You should see the configuration properties from your TraversiumConfiguration repository.
+
+### 9. Deploy Ingress Rules
 
 ```bash
 helm upgrade --install ingress ./ingress \
@@ -400,6 +443,95 @@ helm upgrade --install ingress ./ingress \
 # Verify ingress
 kubectl get ingress -n production
 ```
+
+### 10. Setup GitHub Webhook for Config Server
+
+The webhook enables automatic configuration refresh when you push changes to the TraversiumConfiguration repository.
+
+#### 10.1 Get Ingress External IP
+
+```bash
+# Get the external IP
+kubectl get svc -n production nginx-ingress-ingress-nginx-controller
+```
+
+Note the `EXTERNAL-IP` (e.g., `4.165.58.183`)
+
+#### 10.2 Verify Config Server Webhook Endpoint
+
+The ingress automatically exposes the config-server's `/monitor` endpoint:
+
+```bash
+# Test the webhook endpoint (should return 200 or 405)
+curl -X POST http://<EXTERNAL-IP>/monitor
+
+# Example:
+curl -X POST http://4.165.58.183/monitor
+```
+
+It is fine to get 400 - Bad Request since no payload is sent.
+
+#### 10.3 Configure GitHub Webhook
+
+1. Go to your **TraversiumConfiguration** repository on GitHub
+2. Navigate to **Settings** → **Webhooks** → **Add webhook**
+3. Configure the webhook:
+   - **Payload URL**: `http://<EXTERNAL-IP>/monitor` (e.g., `http://4.165.58.183/monitor`)
+   - **Content type**: `application/json`
+   - **Secret**: (optional, leave blank or set a secret)
+   - **Which events would you like to trigger this webhook?**: Select **Just the push event**
+   - **Active**: ✓ Check this box
+
+4. Click **Add webhook**
+
+#### 10.4 Test the Webhook
+
+1. Make a change to one of the configuration files in TraversiumConfiguration repository:
+   ```bash
+   # Example: Edit UserService.properties
+   # Add or change a property:
+   test.property=hello-from-config-server
+   ```
+
+2. Commit and push to the `main` branch:
+   ```bash
+   git add .
+   git commit -m "Test config refresh"
+   git push origin main
+   ```
+
+3. Verify webhook delivery in GitHub:
+   - Go to **Settings** → **Webhooks**
+   - Click on your webhook
+   - Check **Recent Deliveries** tab
+   - Should see a successful delivery (green checkmark)
+
+4. Monitor config-server logs to see the refresh event:
+   ```bash
+   kubectl logs -f -n production -l app=config-server
+   ```
+
+   You should see logs indicating:
+   - Webhook received
+   - Configuration refreshed
+   - Refresh event published to Kafka (springCloudBus topic)
+
+5. Monitor microservices to see if they received the refresh event:
+   ```bash
+   # Check if services received the refresh event
+   kubectl logs -n production -l app=user-service | grep -i "refresh"
+   ```
+
+#### 10.5 How It Works
+
+When you push configuration changes to the main branch:
+
+1. **GitHub** sends a webhook POST request to `http://<EXTERNAL-IP>/monitor`
+2. **Ingress** routes the request to **config-server**
+3. **Config-server** receives the webhook and pulls latest configuration from Git
+4. **Config-server** publishes a refresh event to Kafka (`springCloudBus` topic)
+5. **All microservices** subscribed to Kafka receive the refresh event
+6. **Microservices** reload their configuration from config-server **without restarting**
 
 ---
 
@@ -462,6 +594,7 @@ Replace `<EXTERNAL-IP>` with your actual external IP:
 - **Social Service Swagger:** `http://<EXTERNAL-IP>/social/swagger-ui.html`
 - **Notification Service Swagger:** `http://<EXTERNAL-IP>/notifications/swagger-ui.html`
 - **File Storage Service Swagger:** `http://<EXTERNAL-IP>/files/swagger-ui.html`
+- **Config Server Webhook:** `http://<EXTERNAL-IP>/monitor` (for GitHub webhooks)
 
 ### API Endpoints
 
@@ -630,6 +763,7 @@ helm uninstall social-service -n production
 helm uninstall notification-service -n production
 helm uninstall file-storage-service -n production
 helm uninstall moderation-service -n production
+helm uninstall config-server -n production
 helm uninstall ingress -n production
 helm uninstall nginx-ingress -n production
 

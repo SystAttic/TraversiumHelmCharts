@@ -1,0 +1,15 @@
+image:
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: Always
+
+secrets:
+  gitSecret: config-git-secret-prod
+
+kafka:
+  bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
+  refreshTopic: "config-refresh-topic-prod"
+
+config:
+  git:
+    defaultLabel: main
+    refreshRate: 60

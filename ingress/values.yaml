@@ -35,3 +35,7 @@ services:
     name: file-storage-service
     path: /files
     port: 80
+  config:
+    name: config-server
+    path: /monitor
+    port: 80

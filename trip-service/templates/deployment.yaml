@@ -32,10 +32,18 @@ spec:
               value: "{{ .Values.kafka.notificationTopic }}"
             - name: SPRING_GRPC_SERVER_PORT
               value: "{{ .Values.grpc.server.port }}"
-            - name: GRPC_CLIENT_MODERATION_SERVICE_HOST
+            - name: SPRING_GRPC_CLIENT_MODERATION_SERVICE_MODERATION_HOST
               value: "{{ .Values.grpc.client.moderation.host }}"
-            - name: GRPC_CLIENT_MODERATION_SERVICE_PORT
+            - name: SPRING_GRPC_CLIENT_MODERATION_SERVICE_MODERATION_PORT
               value: "{{ .Values.grpc.client.moderation.port }}"
+
+            # Spring Cloud Config Server
+            {{- if .Values.configServer }}
+            {{- if .Values.configServer.enabled }}
+            {{ include "common.configServerEnv" . | nindent 12 }}
+            {{ include "common.configServerBusEnv" . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           {{ include "common.probes" (dict "contextPath" "/trips" "Values" .Values) | nindent 10 }}
       volumes:
         {{ include "common.firebaseVolume" . | nindent 8 }}

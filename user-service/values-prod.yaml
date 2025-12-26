@@ -1,6 +1,6 @@
 image:
   tag: "1.2.0-SNAPSHOT"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 secrets:
   databaseSecret: neon-user-db-secret-prod
@@ -8,3 +8,7 @@ secrets:
 
 kafka:
   bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
+
+configServer:
+  enabled: true
+  

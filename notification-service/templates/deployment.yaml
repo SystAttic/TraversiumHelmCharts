@@ -33,6 +33,14 @@ spec:
               value: "3"
             - name: SPRING_KAFKA_NOTIFICATION_TOPIC
               value: "{{ .Values.kafka.notificationTopic }}"
+
+            # Spring Cloud Config Server
+            {{- if .Values.configServer }}
+            {{- if .Values.configServer.enabled }}
+            {{ include "common.configServerEnv" . | nindent 12 }}
+            {{ include "common.configServerBusEnv" . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           {{ include "common.probes" (dict "contextPath" "/notifications" "Values" .Values) | nindent 10 }}
       volumes:
         {{ include "common.firebaseVolume" . | nindent 8 }}

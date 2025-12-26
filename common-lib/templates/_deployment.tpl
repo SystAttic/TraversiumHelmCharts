@@ -86,7 +86,7 @@ imagePullSecrets:
 
 {{- define "common.managementEnv" -}}
 - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
-  value: "health,info,prometheus"
+  value: "health,info,prometheus,busrefresh,refresh"
 - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
   value: "always"
 - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
@@ -117,6 +117,24 @@ imagePullSecrets:
   value: "livenessState,ping"
 - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_LIVENESS_SHOW_DETAILS
   value: "always"
+{{ end -}}
+
+{{- define "common.configServerEnv" -}}
+# Spring Cloud Config Server connection
+- name: SPRING_APPLICATION_NAME
+  value: "{{ .Values.configServer.applicationName }}"
+- name: SPRING_CONFIG_IMPORT
+  value: "optional:configserver:http://config-server"
+- name: SPRING_CLOUD_CONFIG_FAIL_FAST
+  value: "{{ .Values.configServer.failFast | default "false" }}"
+{{ end -}}
+
+{{- define "common.configServerBusEnv" -}}
+# Spring Cloud Bus for configuration refresh
+- name: SPRING_CLOUD_BUS_ENABLED
+  value: "{{ .Values.configServer.bus.enabled | default "true" }}"
+- name: SPRING_CLOUD_BUS_REFRESH_ENABLED
+  value: "{{ .Values.configServer.bus.refreshEnabled | default "true" }}"
 {{ end -}}
 
 {{- define "common.standardEnv" -}}

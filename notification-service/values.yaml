@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-notification-service
-  tag: "1.3.0"
+  tag: "1.4.0-SNAPSHOT"
   pullPolicy: IfNotPresent
 
 service:
@@ -47,3 +47,10 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  bus:
+    enabled: true
+    refreshEnabled: true
+  applicationName: NotificationService  

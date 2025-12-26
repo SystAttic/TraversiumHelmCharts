@@ -78,3 +78,11 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  applicationName: UserService
+  failFast: false
+  bus:
+    enabled: true
+    refreshEnabled: true

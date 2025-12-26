@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-trip-service
-  tag: "1.2.0"
+  tag: "1.3.0-SNAPSHOT"
   pullPolicy: IfNotPresent
 
 service:
@@ -57,3 +57,11 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  failFast: false
+  bus:
+    enabled: true
+    refreshEnabled: true
+  applicationName: TripService

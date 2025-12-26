@@ -1,32 +1,37 @@
-# Common/Default configuration
-
 image:
-  repository: ghcr.io/systattic/traversium-audit-service
-  tag: "1.2.0-SNAPSHOT"
-  pullPolicy: IfNotPresent
+  repository: ghcr.io/systattic/traversium-config-server
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: Always
 
 service:
-  port: 8092
+  port: 8888
   type: ClusterIP
 
 replicaCount: 1
 
 resources:
   limits:
-    cpu: 1000m
-    memory: 1Gi
-  requests:
     cpu: 500m
     memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
 
 secrets:
   imagePullSecret: ghcr-secret
-  databaseSecret: neon-audit-db-secret
-  firebaseSecret: firebase-secret
+  gitSecret: config-git-secret
+
+# Spring Cloud Config Git configuration
+config:
+  git:
+    uri: "https://github.com/SystAttic/TraversiumConfiguration"
+    defaultLabel: main
+    cloneOnStart: true
+    timeout: 10
+    refreshRate: 60
 
 kafka:
   bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
-  auditTopic: "audit-topic"
 
 probes:
   startup:
@@ -47,11 +52,3 @@ probes:
 
 logging:
   level: INFO
-
-configServer:
-  enabled: false
-  applicationName: AuditService  
-  failFast: false
-  bus:
-    enabled: true
-    refreshEnabled: true

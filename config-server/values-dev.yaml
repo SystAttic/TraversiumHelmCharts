@@ -1,0 +1,29 @@
+image:
+  tag: "latest"
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 125m
+    memory: 128Mi
+
+secrets:
+  gitSecret: config-git-secret-dev
+
+config:
+  git:
+    uri: "https://github.com/SystAttic/TraversiumConfiguration"
+    defaultLabel: dev
+    cloneOnStart: true
+    timeout: 10
+    refreshRate: 30
+
+kafka:
+  bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
+  refreshTopic: "config-refresh-topic-dev"
+
+logging:
+  level: DEBUG

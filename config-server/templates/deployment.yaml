@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "" "Values" .Values) | nindent 8 }}
+    spec:
+      {{ include "common.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: config-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            # Server Configuration
+            - name: SERVER_PORT
+              value: "{{ .Values.service.port }}"
+
+            # Spring Cloud Config Git Configuration
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+              value: "{{ .Values.config.git.uri }}"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL
+              value: "{{ .Values.config.git.defaultLabel }}"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START
+              value: "{{ .Values.config.git.cloneOnStart }}"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT
+              value: "{{ .Values.config.git.timeout }}"
+            - name: SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE
+              value: "{{ .Values.config.git.refreshRate }}"
+
+            # Kafka Configuration for config refresh events
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "{{ .Values.kafka.bootstrapServers }}"
+
+            # Management and Actuator
+            {{ include "common.managementEnv" . | nindent 12 }}
+            {{ include "common.managementHealthNoDb" . | nindent 12 }}
+
+            # Logging
+            - name: LOGGING_LEVEL_ROOT
+              value: "{{ .Values.logging.level }}"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD
+              value: "{{ .Values.logging.level }}"
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+          {{ include "common.probes" (dict "contextPath" "" "Values" .Values) | nindent 10 }}

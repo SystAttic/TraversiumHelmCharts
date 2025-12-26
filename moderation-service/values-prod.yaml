@@ -14,3 +14,10 @@ probes:
     periodSeconds: 15
   readiness:
     initialDelaySeconds: 10
+
+configServer:
+  enabled: true
+  
+
+kafka:
+    bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"

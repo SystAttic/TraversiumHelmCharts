@@ -32,14 +32,14 @@ spec:
             - name: SPRING_GRPC_SERVER_PORT
               value: "{{ .Values.service.grpcPort }}"
 
-            - name: AZURE_CONTENTSAFETY_ENDPOINT
+            - name: AZURE_CONTENT_SAFETY_ENDPOINT
               value: "{{ .Values.azure.contentSafety.endpoint }}"
-            - name: AZURE_CONTENTSAFETY_API_KEY
+            - name: AZURE_CONTENT_SAFETY_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.azureModerationSecret }}
                   key: api-key
-            - name: AZURE_CONTENTSAFETY_API_VERSION
+            - name: AZURE_CONTENT_SAFETY_API_VERSION
               value: "{{ .Values.azure.contentSafety.apiVersion }}"
 
             - name: MODERATION_POLICY_BLOCK_SEVERITY
@@ -65,4 +65,15 @@ spec:
             - name: MANAGEMENT_HEALTH_GRPC_ENABLED
               value: "true"
             {{ include "common.managementHealthNoDb" . | nindent 12 }}
+
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "{{ .Values.kafka.bootstrapServers }}"
+
+            # Spring Cloud Config Server
+            {{- if .Values.configServer }}
+            {{- if .Values.configServer.enabled }}
+            {{ include "common.configServerEnv" . | nindent 12 }}
+            {{ include "common.configServerBusEnv" . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           {{ include "common.probes" (dict "contextPath" "/moderation" "Values" .Values) | nindent 10 }}

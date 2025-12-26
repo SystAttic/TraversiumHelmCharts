@@ -67,3 +67,14 @@ probes:
 
 logging:
   level: INFO
+
+configServer:
+  enabled: false
+  failFast: false
+  bus:
+    enabled: true
+    refreshEnabled: true
+  applicationName: ModerationService
+
+kafka:
+  bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"

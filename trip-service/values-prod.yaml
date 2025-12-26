@@ -1,5 +1,5 @@
 image:
-  tag: "1.2.0"
+  tag: "1.3.0-SNAPSHOT"
 
 secrets:
   databaseSecret: neon-trip-db-secret-prod
@@ -14,3 +14,7 @@ probes:
     periodSeconds: 15
   readiness:
     initialDelaySeconds: 10
+
+configServer:
+  enabled: true
+  
