@@ -127,6 +127,14 @@ imagePullSecrets:
   value: "optional:configserver:http://config-server"
 - name: SPRING_CLOUD_CONFIG_FAIL_FAST
   value: "{{ .Values.configServer.failFast | default "false" }}"
+{{- if .Values.spring }}
+{{- if .Values.spring.profiles }}
+{{- if .Values.spring.profiles.active }}
+- name: SPRING_PROFILES_ACTIVE
+  value: "{{ .Values.spring.profiles.active }}"
+{{- end }}
+{{- end }}
+{{- end }}
 {{ end -}}
 
 {{- define "common.configServerBusEnv" -}}

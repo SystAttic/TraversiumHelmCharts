@@ -23,7 +23,11 @@ probes:
 
 configServer:
   enabled: true
-  
+
+spring:
+  profiles:
+    active: prod
+
 
 kafka:
     bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"

@@ -36,3 +36,7 @@ probes:
 
 logging:
   level: DEBUG
+
+spring:
+  profiles:
+    active: dev

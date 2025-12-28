@@ -46,3 +46,7 @@ resilience4j:
 
 logging:
   level: DEBUG
+
+spring:
+  profiles:
+    active: dev

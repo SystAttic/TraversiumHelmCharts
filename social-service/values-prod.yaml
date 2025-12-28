@@ -23,4 +23,8 @@ probes:
 
 configServer:
   enabled: true
-  
+
+spring:
+  profiles:
+    active: prod
+
