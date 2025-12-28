@@ -21,6 +21,7 @@ secrets:
   imagePullSecret: ghcr-secret
   databaseSecret: neon-user-db-secret
   firebaseSecret: firebase-secret
+  keycloakSecret: keycloak-client-secret
 
 kafka:
   bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
@@ -78,6 +79,19 @@ probes:
 
 logging:
   level: INFO
+
+spring:
+  main:
+    allowBeanDefinitionOverriding: true
+
+security:
+  oauth2:
+    client:
+      tokenUri: ""
+      clientId: "user-service"
+      clientSecret: ""
+      grantType: "client_credentials"
+      refreshSkewSeconds: 30
 
 configServer:
   enabled: false

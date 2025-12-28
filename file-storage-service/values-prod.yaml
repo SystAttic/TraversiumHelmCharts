@@ -1,9 +1,13 @@
 image:
-  tag: "1.0.0-SNAPSHOT"
+  tag: "1.1.0-SNAPSHOT"
 
 secrets:
+  databaseSecret: neon-file-storage-db-secret-prod
   azureStorageSecret: azure-storage-secret-prod
   firebaseSecret: firebase-secret-prod
+
+kafka:
+  bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
 
 azure:
   storage:

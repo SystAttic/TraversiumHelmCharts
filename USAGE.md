@@ -256,6 +256,120 @@ To set kafka bootstrap server address for other services, use: kafka.kafka-test.
 
 **Note:** The Kafka service will be accessible at `kafka:9092` from within the cluster.
 
+### Deploy Keycloak
+
+Keycloak provides authentication and authorization (OAuth2/OIDC) for the microservices.
+
+```bash
+# Update Helm dependencies for Keycloak chart
+cd keycloak
+helm dependency update
+cd ..
+
+# Install Keycloak in dev namespace
+helm upgrade --install keycloak ./keycloak \
+  -f ./keycloak/values.yaml \
+  -f ./keycloak/values-dev.yaml \
+  --namespace dev \
+  --create-namespace
+
+# Verify Keycloak is running
+kubectl get pods -n dev | grep keycloak
+kubectl get svc -n dev | grep keycloak
+```
+
+#### Access Keycloak Admin Console
+
+```bash
+# Port-forward to access Keycloak locally
+kubectl port-forward -n dev svc/keycloak-http 8080:8080
+
+# Open http://localhost:8080/auth
+# Username: admin
+# Password: admin (from keycloak-admin-secret-dev)
+```
+
+#### Configure Keycloak Realm and Clients
+
+After Keycloak is running, you need to manually configure the realm and clients:
+
+1. **Create Realm:**
+   - Login to Keycloak Admin Console (http://localhost:8080/auth)
+   - Click **Create Realm**
+   - Name: `traversium`
+   - Click **Create**
+
+2. **Create OAuth2 Client for user-service:**
+   - Go to **Clients** → **Create client**
+   - Client ID: `user-service`
+   - Client type: OpenID Connect
+   - Click **Next**
+   - Client authentication: **ON**
+   - Service accounts roles: **ON**
+   - Click **Save**
+   - Go to **Credentials** tab
+   - Copy the **Client secret**
+   - Update the development secret (if different from default):
+     ```bash
+     kubectl delete secret keycloak-client-secret -n dev
+     kubectl create secret generic keycloak-client-secret \
+       --from-literal=client-secret='<your-copied-secret>' \
+       -n dev
+     ```
+
+3. **Create OAuth2 Client for trip-service:**
+   - Repeat above steps with Client ID: `trip-service`
+   - Update secret:
+     ```bash
+     kubectl delete secret keycloak-trip-client-secret -n dev
+     kubectl create secret generic keycloak-trip-client-secret \
+       --from-literal=client-secret='<your-copied-secret>' \
+       -n dev
+     ```
+
+4. **Create OAuth2 Client for social-service:**
+   - Repeat above steps with Client ID: `social-service`
+   - Update secret:
+     ```bash
+     kubectl delete secret keycloak-social-client-secret -n dev
+     kubectl create secret generic keycloak-social-client-secret \
+       --from-literal=client-secret='<your-copied-secret>' \
+       -n dev
+     ```
+
+5. **Create OAuth2 Resource Server for moderation-service:**
+   - Create client with Client ID: `moderation-service`
+   - Client authentication: **ON**
+   - Authorization: **ON**
+
+6. **Update Service Configuration:**
+   - Edit values-dev.yaml files to add token URI:
+
+   For user-service, trip-service, social-service:
+   ```yaml
+   security:
+     oauth2:
+       client:
+         tokenUri: "http://keycloak-http.dev.svc.cluster.local:8080/auth/realms/traversium/protocol/openid-connect/token"
+   ```
+
+   For moderation-service:
+   ```yaml
+   security:
+     oauth2:
+       resourceserver:
+         jwt:
+           issuerUri: "http://keycloak-http.dev.svc.cluster.local:8080/auth/realms/traversium"
+   ```
+
+7. **Redeploy affected services** to pick up the Keycloak configuration:
+   ```bash
+   helm upgrade user-service ./user-service -f ./user-service/values.yaml -f ./user-service/values-dev.yaml -n dev
+   helm upgrade trip-service ./trip-service -f ./trip-service/values.yaml -f ./trip-service/values-dev.yaml -n dev
+   helm upgrade social-service ./social-service -f ./social-service/values.yaml -f ./social-service/values-dev.yaml -n dev
+   helm upgrade moderation-service ./moderation-service -f ./moderation-service/values.yaml -f ./moderation-service/values-dev.yaml -n dev
+   ```
+
 ### Deploy Prometheus
 
 Prometheus is used for monitoring and metrics collection from all services.

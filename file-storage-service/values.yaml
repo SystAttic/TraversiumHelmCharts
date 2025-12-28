@@ -2,8 +2,8 @@
 
 image:
   repository: ghcr.io/systattic/traversium-file-storage-service
-  tag: "1.0.0-SNAPSHOT"
-  pullPolicy: IfNotPresent
+  tag: "1.1.0-SNAPSHOT"
+  pullPolicy: Always
 
 service:
   port: 8095
@@ -21,8 +21,12 @@ resources:
 
 secrets:
   imagePullSecret: ghcr-secret
+  databaseSecret: neon-file-storage-db-secret
   azureStorageSecret: azure-storage-secret
   firebaseSecret: firebase-secret
+
+kafka:
+  bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
 
 azure:
   storage:

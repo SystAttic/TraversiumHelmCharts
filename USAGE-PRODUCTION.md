@@ -110,7 +110,153 @@ kubectl get svc -n kafka-prod
 
 **Kafka Bootstrap Server:** `kafka.kafka-prod.svc.cluster.local:9092`
 
-### 2. Deploy Prometheus
+### 2. Deploy Keycloak
+
+Keycloak provides authentication and authorization (OAuth2/OIDC) for the microservices.
+
+```bash
+# Update Helm dependencies for Keycloak chart
+cd keycloak
+helm dependency update
+cd ..
+
+# Deploy Keycloak to production namespace
+helm upgrade --install keycloak ./keycloak \
+  -f ./keycloak/values.yaml \
+  -f ./keycloak/values-prod.yaml \
+  --namespace production
+
+# Verify Keycloak is running
+kubectl get pods -n production | grep keycloak
+kubectl get svc -n production | grep keycloak
+```
+
+#### Access Keycloak Admin Console
+
+**Option 1: Port Forwarding (for setup)**
+```bash
+# Port-forward to access Keycloak locally
+kubectl port-forward -n production svc/keycloak-http 8080:8080
+
+# Open http://localhost:8080/auth
+# Username: admin
+# Password: (from keycloak-admin-secret-prod)
+```
+
+**Option 2: Through Ingress**
+```
+# Keycloak is exposed via ingress at:
+http://<EXTERNAL-IP>/auth
+
+# Get external IP:
+kubectl get svc -n production nginx-ingress-ingress-nginx-controller
+```
+
+#### Configure Keycloak Realm and Clients
+
+After Keycloak is running, configure the realm and OAuth2 clients:
+
+1. **Create Realm:**
+   - Login to Keycloak Admin Console
+   - Click **Create Realm**
+   - Name: `traversium`
+   - Click **Create**
+
+2. **Create OAuth2 Client for user-service:**
+   - Go to **Clients** → **Create client**
+   - Client ID: `user-service`
+   - Client type: OpenID Connect
+   - Click **Next**
+   - Client authentication: **ON**
+   - Service accounts roles: **ON**
+   - Click **Save**
+   - Go to **Credentials** tab
+   - Copy the **Client secret**
+   - **Important:** This secret should match what's in `create-production-secrets.sh`
+   - If different, update the production secret:
+     ```bash
+     kubectl delete secret keycloak-client-secret-prod -n production
+     kubectl create secret generic keycloak-client-secret-prod \
+       --from-literal=client-secret='<your-client-secret>' \
+       -n production
+     ```
+
+3. **Create OAuth2 Client for trip-service:**
+   - Client ID: `trip-service`
+   - Follow same steps as user-service
+   - Update secret if needed:
+     ```bash
+     kubectl delete secret keycloak-trip-client-secret-prod -n production
+     kubectl create secret generic keycloak-trip-client-secret-prod \
+       --from-literal=client-secret='<your-client-secret>' \
+       -n production
+     ```
+
+4. **Create OAuth2 Client for social-service:**
+   - Client ID: `social-service`
+   - Follow same steps as user-service
+   - Update secret if needed:
+     ```bash
+     kubectl delete secret keycloak-social-client-secret-prod -n production
+     kubectl create secret generic keycloak-social-client-secret-prod \
+       --from-literal=client-secret='<your-client-secret>' \
+       -n production
+     ```
+
+5. **Create OAuth2 Resource Server for moderation-service:**
+   - Create client with Client ID: `moderation-service`
+   - Client authentication: **ON**
+   - Authorization: **ON**
+   - Direct access grants: **ON** (for testing)
+
+6. **Verify Token URIs in Service Configuration:**
+
+   The following token URIs should already be configured in values-prod.yaml:
+
+   For user-service, trip-service, social-service:
+   ```yaml
+   security:
+     oauth2:
+       client:
+         tokenUri: "http://keycloak-http.production.svc.cluster.local:8080/auth/realms/traversium/protocol/openid-connect/token"
+   ```
+
+   For moderation-service:
+   ```yaml
+   security:
+     oauth2:
+       resourceserver:
+         jwt:
+           issuerUri: "http://keycloak-http.production.svc.cluster.local:8080/auth/realms/traversium"
+   ```
+
+7. **Redeploy Services** if you updated any secrets:
+   ```bash
+   kubectl rollout restart deployment user-service -n production
+   kubectl rollout restart deployment trip-service -n production
+   kubectl rollout restart deployment social-service -n production
+   kubectl rollout restart deployment moderation-service -n production
+   ```
+
+#### Test OAuth2 Authentication
+
+```bash
+# Get access token from Keycloak
+curl -X POST http://<EXTERNAL-IP>/auth/realms/traversium/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=user-service" \
+  -d "client_secret=<your-client-secret>" \
+  -d "grant_type=client_credentials"
+
+# Use the access token to call moderation service
+TOKEN="<access-token-from-above>"
+curl -X POST http://<EXTERNAL-IP>/moderation/analyze \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Test content"}'
+```
+
+### 3. Deploy Prometheus
 
 ```bash
 # Add Prometheus repository

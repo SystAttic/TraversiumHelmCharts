@@ -69,6 +69,22 @@ spec:
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: "{{ .Values.kafka.bootstrapServers }}"
 
+            # OAuth2 Resource Server Configuration
+            {{- if .Values.security }}
+            {{- if .Values.security.oauth2 }}
+            {{- if .Values.security.oauth2.resourceserver.jwt.issuerUri }}
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+              value: "{{ .Values.security.oauth2.resourceserver.jwt.issuerUri }}"
+            {{- end }}
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES
+              value: "{{ .Values.security.oauth2.resourceserver.jwt.audiences }}"
+            {{- end }}
+            {{- if .Values.security.moderation }}
+            - name: SECURITY_MODERATION_REQUIRED_ROLE
+              value: "{{ .Values.security.moderation.requiredRole }}"
+            {{- end }}
+            {{- end }}
+
             # Spring Cloud Config Server
             {{- if .Values.configServer }}
             {{- if .Values.configServer.enabled }}

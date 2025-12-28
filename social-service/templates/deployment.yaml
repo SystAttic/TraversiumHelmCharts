@@ -32,6 +32,35 @@ spec:
             - name: TRIP_SERVICE_URL
               value: "{{ .Values.tripService.url }}"
 
+            # Spring Configuration
+            {{- if .Values.spring }}
+            {{- if .Values.spring.main }}
+            - name: SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING
+              value: "{{ .Values.spring.main.allowBeanDefinitionOverriding }}"
+            {{- end }}
+            {{- end }}
+
+            # OAuth2 Client Configuration
+            {{- if .Values.security }}
+            {{- if .Values.security.oauth2 }}
+            {{- if .Values.security.oauth2.client.tokenUri }}
+            - name: SECURITY_OAUTH2_CLIENT_TOKEN_URI
+              value: "{{ .Values.security.oauth2.client.tokenUri }}"
+            {{- end }}
+            - name: SECURITY_OAUTH2_CLIENT_CLIENT_ID
+              value: "{{ .Values.security.oauth2.client.clientId }}"
+            - name: SECURITY_OAUTH2_CLIENT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.keycloakSecret }}
+                  key: client-secret
+            - name: SECURITY_OAUTH2_CLIENT_GRANT_TYPE
+              value: "{{ .Values.security.oauth2.client.grantType }}"
+            - name: SECURITY_OAUTH2_CLIENT_REFRESH_SKEW_SECONDS
+              value: "{{ .Values.security.oauth2.client.refreshSkewSeconds }}"
+            {{- end }}
+            {{- end }}
+
             # Spring Cloud Config Server
             {{- if .Values.configServer }}
             {{- if .Values.configServer.enabled }}

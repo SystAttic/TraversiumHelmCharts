@@ -1,0 +1,52 @@
+keycloak:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 768Mi
+    requests:
+      cpu: 250m
+      memory: 384Mi
+
+  extraEnv: |
+    - name: KC_DB
+      value: postgres
+    - name: KC_DB_URL
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-dev
+          key: url
+    - name: KC_DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-dev
+          key: username
+    - name: KC_DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-dev
+          key: password
+    - name: KEYCLOAK_ADMIN
+      value: admin
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-secret-dev
+          key: admin-password
+    - name: KC_PROXY
+      value: edge
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_HTTP_RELATIVE_PATH
+      value: /auth
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KC_HEALTH_ENABLED
+      value: "true"
+    - name: KC_LOG_LEVEL
+      value: info
+
+  args:
+    - "start-dev"
+    - "--hostname-strict=false"

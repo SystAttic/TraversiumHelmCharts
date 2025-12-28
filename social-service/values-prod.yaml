@@ -4,9 +4,15 @@ image:
 secrets:
   databaseSecret: neon-social-db-secret-prod
   firebaseSecret: firebase-secret-prod
+  keycloakSecret: keycloak-social-client-secret-prod
 
 kafka:
   bootstrapServers: "kafka.kafka-prod.svc.cluster.local:9092"
+
+security:
+  oauth2:
+    client:
+      tokenUri: "http://keycloak-http.production.svc.cluster.local:8080/auth/realms/traversium/protocol/openid-connect/token"
 
 probes:
   liveness:

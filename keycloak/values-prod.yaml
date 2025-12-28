@@ -1,0 +1,43 @@
+keycloak:
+  replicas: 1
+
+  extraEnv: |
+    - name: KC_DB
+      value: postgres
+    - name: KC_DB_URL
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-prod
+          key: url
+    - name: KC_DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-prod
+          key: username
+    - name: KC_DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-db-secret-prod
+          key: password
+    - name: KEYCLOAK_ADMIN
+      value: admin
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-secret-prod
+          key: admin-password
+    - name: KC_PROXY
+      value: edge
+    - name: KC_PROXY_HEADERS
+      value: xforwarded
+    - name: KC_HTTP_RELATIVE_PATH
+      value: /auth
+    - name: KC_HEALTH_ENABLED
+      value: "true"
+    - name: KC_LOG_LEVEL
+      value: info
+
+  args:
+    - "start-dev"
+    - "--debug"
+    - "--hostname-strict=false"

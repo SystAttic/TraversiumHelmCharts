@@ -17,6 +17,12 @@ moderation:
   policy:
     blockSeverity: 1
 
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuerUri: "http://keycloak-http.dev.svc.cluster.local:8080/auth/realms/traversium"
+
 probes:
   startup:
     initialDelaySeconds: 15

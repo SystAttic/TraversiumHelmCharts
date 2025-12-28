@@ -13,6 +13,7 @@ resources:
 secrets:
   azureStorageSecret: azure-storage-secret-dev
   firebaseSecret: firebase-secret-dev
+  databaseSecret: neon-file-storage-db-secret-dev
 
 azure:
   storage:

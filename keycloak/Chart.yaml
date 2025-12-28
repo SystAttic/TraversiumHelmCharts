@@ -1,0 +1,11 @@
+apiVersion: v2
+name: keycloak
+description: Keycloak Helm chart for Traversium application
+type: application
+version: 1.0.0
+appVersion: "24.0.0"
+
+dependencies:
+  - name: keycloak
+    version: 18.10.0
+    repository: https://codecentric.github.io/helm-charts

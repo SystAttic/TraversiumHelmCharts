@@ -3,7 +3,7 @@
 image:
   repository: ghcr.io/systattic/traversium-social-service
   tag: "1.1.0-SNAPSHOT"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   port: 8094
@@ -23,6 +23,7 @@ secrets:
   imagePullSecret: ghcr-secret
   databaseSecret: neon-social-db-secret
   firebaseSecret: firebase-secret
+  keycloakSecret: keycloak-social-client-secret
 
 kafka:
   bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
@@ -30,7 +31,7 @@ kafka:
   notificationTopic: "notification-topic"
 
 tripService:
-  url: "http://trip-service/trips"
+  url: "http://trip-service:8093/trips"
 
 probes:
   startup:
@@ -52,9 +53,22 @@ probes:
 logging:
   level: INFO
 
+spring:
+  main:
+    allowBeanDefinitionOverriding: true
+
+security:
+  oauth2:
+    client:
+      tokenUri: ""
+      clientId: "social-service"
+      clientSecret: ""
+      grantType: "client_credentials"
+      refreshSkewSeconds: 30
+
 configServer:
   enabled: false
-  applicationName: SocialService  
+  applicationName: SocialService
   failFast: false
   bus:
     enabled: true

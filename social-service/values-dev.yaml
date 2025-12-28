@@ -13,10 +13,16 @@ resources:
 secrets:
   databaseSecret: neon-social-db-secret-dev
   firebaseSecret: firebase-secret-dev
+  keycloakSecret: keycloak-social-client-secret-dev
 
 kafka:
   auditTopic: "audit-topic-dev"
   notificationTopic: "notification-topic-dev"
+
+security:
+  oauth2:
+    client:
+      tokenUri: "http://keycloak-http.dev.svc.cluster.local:8080/auth/realms/traversium/protocol/openid-connect/token"
 
 probes:
   startup:

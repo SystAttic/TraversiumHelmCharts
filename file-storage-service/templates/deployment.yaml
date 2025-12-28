@@ -22,11 +22,14 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
           volumeMounts:
-            {{ include "common.firebaseVolumeMount" (dict "serviceName" "file-storage-service" "Values" .Values) | nindent 12 }}
+            {{ include "common.firebaseVolumeMount" (dict "serviceName" "filestorage-service" "Values" .Values) | nindent 12 }}
           env:
-            {{- include "common.serverEnv" (dict "contextPath" "/files" "Values" .Values) | nindent 12 }}
-            {{- include "common.managementEnv" . | nindent 12 }}
-            {{- include "common.managementHealthNoDb" . | nindent 12 }}
+            {{ include "common.databaseEnv" . | nindent 12 }}
+            {{ include "common.serverEnv" (dict "contextPath" "/files" "Values" .Values) | nindent 12 }}
+            {{ include "common.flywayJpaEnv" . | nindent 12 }}
+            {{ include "common.kafkaBootstrap" . | nindent 12 }}
+            {{ include "common.managementEnv" . | nindent 12 }}
+            {{ include "common.managementHealthWithDb" . | nindent 12 }}
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_ACCOUNT_NAME
               value: "{{ .Values.azure.storage.accountName }}"
             - name: SPRING_CLOUD_AZURE_STORAGE_BLOB_CONTAINER_NAME

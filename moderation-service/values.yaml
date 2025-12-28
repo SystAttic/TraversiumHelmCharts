@@ -3,7 +3,7 @@
 image:
   repository: ghcr.io/systattic/traversium-moderation-service
   tag: "1.1.0-SNAPSHOT"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   port: 8096
@@ -32,6 +32,15 @@ azure:
 moderation:
   policy:
     blockSeverity: 2
+
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuerUri: ""
+        audiences: "moderation-service"
+  moderation:
+    requiredRole: "moderation:access"
 
 resilience4j:
   circuitBreaker:
