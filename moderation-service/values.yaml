@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-moderation-service
-  tag: "1.1.0-SNAPSHOT"
+  tag: "1.1.0"
   pullPolicy: Always
 
 service:

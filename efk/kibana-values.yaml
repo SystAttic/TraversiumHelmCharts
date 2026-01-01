@@ -1,0 +1,38 @@
+elasticsearchHosts: "https://elasticsearch-master:9200"
+
+replicas: 1
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+extraEnvs:
+  - name: ENCRYPTED_SAVED_OBJECTS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: kibana-encryption-keys
+        key: encryptedSavedObjectsKey
+  - name: SECURITY_KEY
+    valueFrom:
+      secretKeyRef:
+        name: kibana-encryption-keys
+        key: securityKey
+  - name: REPORTING_KEY
+    valueFrom:
+      secretKeyRef:
+        name: kibana-encryption-keys
+        key: reportingKey
+
+kibanaConfig:
+  kibana.yml: |
+    server.basePath: "/kibana"
+    server.rewriteBasePath: true
+    xpack.encryptedSavedObjects.encryptionKey: ${ENCRYPTED_SAVED_OBJECTS_KEY}
+    xpack.security.encryptionKey: ${SECURITY_KEY}
+    xpack.reporting.encryptionKey: ${REPORTING_KEY}
+
+healthCheckPath: "/kibana/app/kibana"

@@ -3,10 +3,17 @@ kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.traversium.com
+    secretName: traversium-tls
   rules:
-    - http:
+    - host: api.traversium.com
+      http:
         paths:
           - path: /grafana
             pathType: Prefix

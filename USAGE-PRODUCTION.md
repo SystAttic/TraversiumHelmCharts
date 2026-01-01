@@ -92,16 +92,22 @@ kubectl create namespace kafka-prod
 
 # Install Kafka (production configuration)
 helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka \
-  --version 32.0.1 \
-  --namespace kafka-prod \
-  --set image.registry=docker.io \
-  --set image.repository=bitnamilegacy/kafka \
-  --set image.tag=4.0.0-debian-12-r0 \
-  --set global.security.allowInsecureImages=true \
-  --set listeners.client.protocol=PLAINTEXT \
-  --set listeners.controller.protocol=PLAINTEXT \
-  --set auth.clientProtocol=plaintext \
-  --set auth.interBrokerProtocol=plaintext
+    --version 32.0.1 \
+    --namespace kafka-prod \
+    --set image.registry=docker.io \
+    --set image.repository=bitnamilegacy/kafka \
+    --set image.tag=4.0.0-debian-12-r0 \
+    --set global.security.allowInsecureImages=true \
+    --set listeners.client.protocol=PLAINTEXT \
+    --set listeners.controller.protocol=PLAINTEXT \
+    --set auth.clientProtocol=plaintext \
+    --set auth.interBrokerProtocol=plaintext \
+    --set controller.resourcesPreset=none \
+    --set controller.resources.requests.cpu=250m \
+    --set controller.resources.requests.memory=512Mi \
+    --set controller.resources.limits.cpu=500m \
+    --set controller.resources.limits.memory=1Gi
+
 
 # Verify Kafka is running
 kubectl get pods -n kafka-prod
@@ -269,6 +275,7 @@ kubectl create namespace monitoring
 # Install Prometheus
 helm install prometheus prometheus-community/prometheus --namespace monitoring
 
+
 # Verify Prometheus is running
 kubectl get pods -n monitoring | grep prometheus
 ```
@@ -282,12 +289,13 @@ helm repo update
 
 # Install Grafana
 helm install grafana grafana/grafana \
-  --namespace monitoring \
-  --set 'grafana\.ini'.server.root_url="http://<public_ip>/grafana" \
-  --set 'grafana\.ini'.server.serve_from_sub_path=true
+    --namespace monitoring \
+    -f monitoring/grafana-values.yaml
 
 # Get Grafana admin password
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+kubectl apply -f monitoring/grafana-ingress.yaml
 
 # Verify Grafana is running
 kubectl get pods -n monitoring | grep grafana
@@ -364,13 +372,8 @@ kubectl exec elasticsearch-master-0 -n efk-prod -- curl -s -k -u elastic:$ELASTI
 ```bash
 # Install Kibana
 helm install kibana elastic/kibana \
-  --namespace efk-prod \
-  --set elasticsearchHosts="https://elasticsearch-master:9200" \
-  --set replicas=1 \
-  --set resources.requests.cpu="250m" \
-  --set resources.limits.cpu="500m" \
-  --set resources.requests.memory="512Mi" \
-  --set resources.limits.memory="1Gi"
+    --namespace efk-prod \
+    -f efk/kibana-values.yaml
 
 # Verify Kibana is running
 kubectl get pods -n efk-prod | grep kibana

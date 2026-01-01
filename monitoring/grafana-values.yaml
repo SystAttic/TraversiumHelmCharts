@@ -1,0 +1,18 @@
+grafana.ini:
+  server:
+    root_url: "https://api.traversium.com/grafana"
+    serve_from_sub_path: true
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+replicas: 1
