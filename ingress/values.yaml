@@ -3,12 +3,11 @@
 ingress:
   enabled: true
   className: "nginx"
-  host: ""
+  host: "api.traversium.com"
   tls:
     enabled: false
     secretName: ""
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  annotations: {}
 
 services:
   user:

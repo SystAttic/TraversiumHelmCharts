@@ -212,9 +212,13 @@ helm get values user-service -n dev
 # Install nginx ingress controller (only once)
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm install nginx-ingress ingress-nginx/ingress-nginx \
-    --set controller.service.externalTrafficPolicy=Local \
-   --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz
+ helm install nginx-ingress ingress-nginx/ingress-nginx \
+     --namespace production \
+     --set controller.service.loadBalancerIP="20.240.93.121" \
+     --set controller.service.externalTrafficPolicy=Local \
+     --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-resource-group"="rg-aks-traversium-test-sweden" \
+     --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz \
+
 
 # Deploy your ingress rules
 helm install traversium-ingress ./ingress

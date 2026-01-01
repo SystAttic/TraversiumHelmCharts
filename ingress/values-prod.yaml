@@ -1,6 +1,6 @@
 ingress:
   tls:
-    enabled: false
+    enabled: true
+    secretName: "traversium-tls"
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rate-limit: "100"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"

@@ -430,6 +430,7 @@ kubectl get pods -n efk-prod | grep fluent-bit
 ```
 
 ### 5. Deploy Ingress Controller
+Then install the ingress controller with the static ip and the resource group where the ip is located:
 
 ```bash
 # Add ingress-nginx repository
@@ -437,10 +438,15 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 
 # Install nginx ingress controller in production namespace
-helm install nginx-ingress ingress-nginx/ingress-nginx \
-  --namespace production \
-  --set controller.service.externalTrafficPolicy=Local \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz
+ helm install nginx-ingress ingress-nginx/ingress-nginx \
+     --namespace production \
+     --set controller.service.loadBalancerIP="20.240.93.121" \
+     --set controller.service.externalTrafficPolicy=Local \
+     --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-resource-group"="rg-aks-traversium-test-sweden" \
+     --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz \
+
+  
+helm install traversium-ingress ./ingress -n production -f ./ingress/values-prod.yaml
 
 # Wait for external IP to be assigned
 kubectl get svc -n production nginx-ingress-ingress-nginx-controller -w
@@ -448,6 +454,101 @@ kubectl get svc -n production nginx-ingress-ingress-nginx-controller -w
 
 **Note the EXTERNAL-IP** - this is your public IP for accessing services.
 
+Because we have dns set up to s static ip address, we need to add rules to bind the ingress controller to that ip.
+
+first check the error message when installing the ingress controller without the static ip:
+```bash
+kubectl describe service nginx-ingress-ingress-nginx-controller -n production
+```
+
+Then you get the identity of resource by running:
+```bash
+az aks show \
+  --resource-group rg-aks-traversium-test-sweden \
+  --name aks-traversium-test \
+  --query identity.principalId \
+  --output tsv
+```
+
+Then assign the role to the identity:
+```bash
+az role assignment create \
+    --assignee <principal-id-from-above> \
+    --role "Network Contributor" \
+    --scope /subscriptions/<your-subscription-id>/resourceGroups/rg-aks-traversium-test-sweden
+```
+
+Delete and wait 30 second s and then reinstall the ingress controller with the static ip as shown above.
+
+### 6. Setup HTTPS with Let's Encrypt
+
+Configure automatic SSL/TLS certificates using cert-manager and Let's Encrypt.
+
+#### 6.1 Install cert-manager
+
+```bash
+# Install cert-manager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.1/cert-manager.yaml
+
+# Wait for cert-manager to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=120s
+
+# Verify installation
+kubectl get pods -n cert-manager
+```
+
+#### 6.2 Create Let's Encrypt ClusterIssuer
+
+Create the cert-manager configuration directory and ClusterIssuer:
+
+```bash
+# Create directory
+mkdir -p cert-manager
+
+# Apply the ClusterIssuer
+kubectl apply -f cert-manager/letsencrypt-production.yaml
+
+# Verify ClusterIssuer is ready
+kubectl get clusterissuer
+```
+#### 6.3 Update Ingress for TLS
+
+The ingress is already configured for TLS in `values-prod.yaml`. Deploy/upgrade the ingress:
+
+```bash
+# Deploy or upgrade ingress with TLS enabled
+helm upgrade traversium-ingress ./ingress -n production -f ./ingress/values-prod.yaml
+
+# Verify ingress has TLS configuration
+kubectl get ingress traversium-ingress -n production -o yaml | grep -A 5 "tls:"
+```
+
+#### 6.4 Verify Certificate Issuance
+
+```bash
+# Check certificate status (should show READY: True)
+kubectl get certificate -n production
+
+# Check certificate details
+kubectl describe certificate traversium-tls -n production
+
+# Verify certificate is valid
+kubectl get secret traversium-tls -n production -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -subject -issuer -dates
+```
+
+The certificate should show:
+- **Subject:** CN=api.traversium.com
+- **Issuer:** Let's Encrypt (R13 or similar)
+- **Valid:** 90 days from issuance
+
+#### 6.5 Test HTTPS Access
+
+```bash
+# Test HTTPS endpoint (replace with your domain)
+curl -I https://api.traversium.com/
+
+# Should return HTTP/2 200 with valid SSL certificate
+```
 ---
 
 ## Deploy Application Services
@@ -722,17 +823,35 @@ kubectl get pods -n efk-prod
 
 ## Access Services
 
-### Get External IP
+### Get External IP and Domain
 
 ```bash
+# Get external IP
 kubectl get svc -n production nginx-ingress-ingress-nginx-controller
+
+# Verify DNS is configured (should return your static IP)
+nslookup api.traversium.com
 ```
 
-Note the `EXTERNAL-IP` (e.g., `4.165.58.183`)
+Note the `EXTERNAL-IP` (e.g., `20.240.93.121`)
 
 ### Service Endpoints
 
-Replace `<EXTERNAL-IP>` with your actual external IP:
+**With Domain (HTTPS - Recommended):**
+
+If you have configured DNS and HTTPS (see [Setup HTTPS with Let's Encrypt](#6-setup-https-with-lets-encrypt)):
+
+- **User Service Swagger:** `https://api.traversium.com/users/swagger-ui.html`
+- **Trip Service Swagger:** `https://api.traversium.com/trips/swagger-ui.html`
+- **Audit Service Swagger:** `https://api.traversium.com/audit/swagger-ui.html`
+- **Social Service Swagger:** `https://api.traversium.com/social/swagger-ui.html`
+- **Notification Service Swagger:** `https://api.traversium.com/notifications/swagger-ui.html`
+- **File Storage Service Swagger:** `https://api.traversium.com/files/swagger-ui.html`
+- **Config Server Webhook:** `https://api.traversium.com/monitor` (for GitHub webhooks)
+
+**Without Domain (HTTP - Direct IP):**
+
+If you haven't configured DNS yet, access via IP:
 
 - **User Service Swagger:** `http://<EXTERNAL-IP>/users/swagger-ui.html`
 - **Trip Service Swagger:** `http://<EXTERNAL-IP>/trips/swagger-ui.html`
@@ -742,8 +861,17 @@ Replace `<EXTERNAL-IP>` with your actual external IP:
 - **File Storage Service Swagger:** `http://<EXTERNAL-IP>/files/swagger-ui.html`
 - **Config Server Webhook:** `http://<EXTERNAL-IP>/monitor` (for GitHub webhooks)
 
+**Note:** Replace `<EXTERNAL-IP>` with your actual external IP (e.g., `20.240.93.121`)
+
 ### API Endpoints
 
+**With HTTPS (Recommended):**
+- **User API:** `https://api.traversium.com/users/rest/v1/users`
+- **Trip API:** `https://api.traversium.com/trips/rest/v1/trips`
+- **Social API:** `https://api.traversium.com/social/rest/v1/posts`
+- **Notification API:** `https://api.traversium.com/notifications/rest/v1/notifications`
+
+**With HTTP (Direct IP):**
 - **User API:** `http://<EXTERNAL-IP>/users/rest/v1/users`
 - **Trip API:** `http://<EXTERNAL-IP>/trips/rest/v1/trips`
 - **Social API:** `http://<EXTERNAL-IP>/social/rest/v1/posts`

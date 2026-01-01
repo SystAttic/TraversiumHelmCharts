@@ -1,5 +1,5 @@
 image:
-  tag: "1.3.0-SNAPSHOT"
+  tag: "1.3.0"
 
 secrets:
   databaseSecret: neon-trip-db-secret-prod
