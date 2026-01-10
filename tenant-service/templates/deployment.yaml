@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: tenant-service
+  template:
+    metadata:
+      labels:
+        app: tenant-service
+      annotations:
+        {{ include "common.prometheusAnnotations" (dict "contextPath" "/tenants" "Values" .Values) | nindent 8 }}
+    spec:
+      {{ include "common.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: tenant-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            {{ include "common.firebaseVolumeMount" (dict "serviceName" "tenant-service" "Values" .Values) | nindent 12 }}
+          env:
+            {{ include "common.standardEnv" (dict "contextPath" "/tenants" "Values" .Values) | nindent 12 }}
+            - name: SPRING_FLYWAY_LOCATIONS
+              value: "classpath:db/migration"
+
+            {{- if .Values.configServer }}
+            {{- if .Values.configServer.enabled }}
+            {{ include "common.configServerEnv" . | nindent 12 }}
+            {{ include "common.configServerBusEnv" . | nindent 12 }}
+            {{- end }}
+            {{- end }}
+          {{ include "common.probes" (dict "contextPath" "/tenants" "Values" .Values) | nindent 10 }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+      volumes:
+        {{ include "common.firebaseVolume" . | nindent 8 }}

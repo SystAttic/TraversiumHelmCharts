@@ -1,5 +1,5 @@
 image:
-  tag: "1.1.0-SNAPSHOT"
+  tag: "1.1.0"
   pullPolicy: Always
 
 secrets:

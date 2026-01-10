@@ -34,6 +34,14 @@ services:
     name: file-storage-service
     path: /files
     port: 80
+  tenant:
+    name: tenant-service
+    path: /tenants
+    port: 80
+  keycloak:
+    name: keycloak-http
+    path: /auth
+    port: 8080
   config:
     name: config-server
     path: /monitor
