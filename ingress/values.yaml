@@ -38,6 +38,10 @@ services:
     name: tenant-service
     path: /tenants
     port: 80
+  report:
+    name: reporting-service
+    path: /reports
+    port: 80
   keycloak:
     name: keycloak-http
     path: /auth

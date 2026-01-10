@@ -7,5 +7,9 @@ spec:
   ports:
     - port: 80
       targetPort: {{ .Values.service.port }}
+      name: http
+    - port: {{ .Values.grpc.server.port }}
+      targetPort: {{ .Values.grpc.server.port }}
+      name: grpc
   selector:
     app: audit-service

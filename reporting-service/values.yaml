@@ -1,12 +1,10 @@
-# Common/Default configuration
-
 image:
-  repository: ghcr.io/systattic/traversium-audit-service
-  tag: "1.3.0"
+  repository: ghcr.io/systattic/traversium-report-service
+  tag: "1.0.0-SNAPSHOT"
   pullPolicy: IfNotPresent
 
 service:
-  port: 8092
+  port: 8097
   type: ClusterIP
 
 replicaCount: 1
@@ -21,16 +19,17 @@ resources:
 
 secrets:
   imagePullSecret: ghcr-secret
-  databaseSecret: neon-audit-db-secret
+  databaseSecret: neon-report-db-secret
   firebaseSecret: firebase-secret
 
 kafka:
   bootstrapServers: "kafka.kafka-test.svc.cluster.local:9092"
-  auditTopic: "audit-topic"
 
 grpc:
-  server:
-    port: 9096
+  client:
+    audit:
+      host: "audit-service"
+      port: 9096
 
 probes:
   startup:
@@ -52,9 +51,13 @@ probes:
 logging:
   level: INFO
 
+spring:
+  profiles:
+    active: test
+
 configServer:
   enabled: false
-  applicationName: AuditService  
+  applicationName: ReportService
   failFast: false
   bus:
     enabled: true

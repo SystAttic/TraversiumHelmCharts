@@ -21,12 +21,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+            - containerPort: {{ .Values.grpc.server.port }}
+              name: grpc
           volumeMounts:
             {{- include "common.firebaseVolumeMount" (dict "serviceName" "audit-service" "Values" .Values) | nindent 12 }}
           env:
             {{- include "common.standardEnv" (dict "contextPath" "/audit" "Values" .Values) | nindent 12 }}
             - name: SPRING_KAFKA_TOPIC
               value: "{{ .Values.kafka.auditTopic }}"
+            - name: SPRING_GRPC_SERVER_PORT
+              value: "{{ .Values.grpc.server.port }}"
 
             # Spring Cloud Config Server
             {{- if .Values.configServer }}

@@ -1,0 +1,24 @@
+# Development overrides - only specify what differs from values.yaml
+
+image:
+  tag: "latest"
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+secrets:
+  databaseSecret: neon-report-db-secret-dev
+  firebaseSecret: firebase-secret-dev
+
+logging:
+  level: DEBUG
+
+spring:
+  profiles:
+    active: dev

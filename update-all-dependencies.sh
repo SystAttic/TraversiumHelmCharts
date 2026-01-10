@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update Helm dependencies for all services
-services=("file-storage-service" "notification-service" "trip-service" "audit-service" "user-service" "social-service" "moderation-service" "keycloak" "tenant-service" "gateway-service")
+services=("file-storage-service" "notification-service" "trip-service" "audit-service" "user-service" "social-service" "moderation-service" "keycloak" "tenant-service" "reporting-service")
 
 echo "Updating Helm dependencies for all services..."
 
