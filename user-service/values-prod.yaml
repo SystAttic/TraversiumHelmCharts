@@ -1,6 +1,6 @@
 image:
-  tag: "1.2.0-SNAPSHOT"
-  pullPolicy: Always
+  tag: "1.2.0"
+  pullPolicy: IfNotPresent
 
 secrets:
   databaseSecret: neon-user-db-secret-prod

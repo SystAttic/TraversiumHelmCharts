@@ -273,7 +273,11 @@ helm repo update
 kubectl create namespace monitoring
 
 # Install Prometheus
-helm install prometheus prometheus-community/prometheus --namespace monitoring
+ helm install prometheus prometheus-community/prometheus \
+    --namespace monitoring \
+    --create-namespace \
+    -f monitoring/prometheus-values.yaml
+
 
 
 # Verify Prometheus is running
@@ -327,8 +331,8 @@ helm install elasticsearch elastic/elasticsearch \
   --set replicas=1 \
   --set minimumMasterNodes=1 \
   --set esJavaOpts="-Xms1g -Xmx1g" \
-  --set resources.requests.cpu="500m" \
-  --set resources.limits.cpu="1000m" \
+  --set resources.requests.cpu="200m" \
+  --set resources.limits.cpu="700m" \
   --set resources.requests.memory="2Gi" \
   --set resources.limits.memory="2Gi" \
   --set clusterHealthCheckParams="wait_for_status=yellow&timeout=60s" \

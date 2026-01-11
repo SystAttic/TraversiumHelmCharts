@@ -1,5 +1,5 @@
 image:
-  tag: "1.4.0-SNAPSHOT"
+  tag: "1.4.0"
 
 secrets:
   databaseSecret: neon-notification-db-secret-prod

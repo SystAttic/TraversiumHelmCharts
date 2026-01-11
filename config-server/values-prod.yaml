@@ -1,6 +1,6 @@
 image:
   tag: "1.1.0"
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 secrets:
   gitSecret: config-git-secret-prod

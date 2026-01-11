@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/systattic/traversium-report-service
-  tag: "1.0.0-SNAPSHOT"
+  tag: "1.0.0"
   pullPolicy: IfNotPresent
 
 service:
@@ -11,10 +11,10 @@ replicaCount: 1
 
 resources:
   limits:
-    cpu: 1000m
+    cpu: 500m
     memory: 1Gi
   requests:
-    cpu: 500m
+    cpu: 250m
     memory: 512Mi
 
 secrets:

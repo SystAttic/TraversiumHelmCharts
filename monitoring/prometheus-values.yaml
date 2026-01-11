@@ -1,0 +1,43 @@
+server:
+  persistentVolume:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+  retention: "30d"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+alertmanager:
+  enabled: true
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+pushgateway:
+  enabled: false

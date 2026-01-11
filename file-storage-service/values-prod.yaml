@@ -1,5 +1,5 @@
 image:
-  tag: "1.1.0-SNAPSHOT"
+  tag: "1.1.0"
 
 secrets:
   databaseSecret: neon-file-storage-db-secret-prod
@@ -26,4 +26,7 @@ configServer:
 spring:
   profiles:
     active: prod
-
+  servlet:
+    multipart:
+      maxFileSize: 2GB
+      maxRequestSize: 2GB

@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-file-storage-service
-  tag: "1.1.0-SNAPSHOT"
+  tag: "1.1.0"
   pullPolicy: Always
 
 service:
@@ -56,8 +56,14 @@ logging:
 
 configServer:
   enabled: false
-  applicationName: FileStorageService  
+  applicationName: FileStorageService
   failFast: false
   bus:
     enabled: true
     refreshEnabled: true
+
+spring:
+  servlet:
+    multipart:
+      maxFileSize: 2GB
+      maxRequestSize: 2GB

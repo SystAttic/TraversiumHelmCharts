@@ -42,6 +42,11 @@ spec:
                   name: {{ .Values.secrets.azureStorageSecret }}
                   key: account-key
 
+            - name: SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE
+              value: "{{ .Values.spring.servlet.multipart.maxFileSize }}"
+            - name: SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE
+              value: "{{ .Values.spring.servlet.multipart.maxRequestSize }}"
+
             # Spring Cloud Config Server
             {{- if .Values.configServer }}
             {{- if .Values.configServer.enabled }}

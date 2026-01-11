@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-trip-service
-  tag: "1.3.0"
+  tag: "1.4.0"
   pullPolicy: IfNotPresent
 
 service:

@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/systattic/traversium-notification-service
-  tag: "1.4.0-SNAPSHOT"
+  tag: "1.4.0"
   pullPolicy: IfNotPresent
 
 service:
