@@ -47,6 +47,9 @@ spec:
             - name: SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE
               value: "{{ .Values.spring.servlet.multipart.maxRequestSize }}"
 
+            - name: TRIP_SERVICE_URL
+              value: "{{ .Values.tripService.url }}"
+
             # Spring Cloud Config Server
             {{- if .Values.configServer }}
             {{- if .Values.configServer.enabled }}

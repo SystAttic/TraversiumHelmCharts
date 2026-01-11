@@ -54,6 +54,9 @@ probes:
 logging:
   level: INFO
 
+tripService:
+  url: "https://api.traversium.com/trips"
+
 configServer:
   enabled: false
   applicationName: FileStorageService
